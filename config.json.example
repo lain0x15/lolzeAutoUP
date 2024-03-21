@@ -8,7 +8,14 @@
         "METHODSTICKY": 0,
         "limitSumOfBalace": 0,
         "sendReports": 0,
-        "marketURLs": []
+        "marketURLs": [
+            {
+                "url": "https://lzt.market/mihoyo/?pmax=5" 
+            },
+            {
+                "url": "https://lzt.market/mihoyo/?pmax=6" 
+            }
+        ]
     },
     "telegram": {
         "token": "",
