@@ -1,0 +1,17 @@
+{
+    "lolzeAutoUP": {
+        "botName": ""
+    },
+    "lolze": {
+        "token": "",
+        "METHODBUMP": 0,
+        "METHODSTICKY": 0,
+        "limitSumOfBalace": 0,
+        "sendReports": 0,
+        "marketURLs": []
+    },
+    "telegram": {
+        "token": "",
+        "userIDs": []
+    }
+}
