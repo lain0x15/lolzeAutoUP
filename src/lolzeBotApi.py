@@ -1,5 +1,15 @@
 import requests, asyncio, time
 
+class lolzeBotApiException(Exception):
+    def __init__(self, typeError=None):
+        if typeError == 'invalid_token':
+            self.message = 'invalid lolze token'
+        else:
+            self.message = 'unknown lolze error'
+    def __str__(self):
+        return f'{self.message}'
+
+
 class lolzeBotApi:
     def __init__(
         self, 
@@ -38,6 +48,8 @@ class lolzeBotApi:
         else:
             raise Exception(f'Сайт выдал ошибку {response.status_code}')
         self.__lastSendRequest = time.time()
+        if response.get('error') in ['invalid_token']:
+            raise lolzeBotApiException(typeError = response['error'])
         return response
         
     def getOwnedAccounts (
