@@ -93,7 +93,13 @@ class lolzeBotApi:
             'hasAccessToMarket': permissions['hasAccessToMarket']
         }
         return result
-    
+    def reserveAcc (
+            self,
+            item_id: int,
+            price: int
+    ) -> dict:
+        return self.sendRequest(f'{item_id}/reserve', params={'price':price}, method='POST')
+
     def bumpAccount (
         self, 
         item_id: int

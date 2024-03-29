@@ -207,7 +207,7 @@ class lolzeAutoUP(lolzeBotApi):
                 accounts = self.sendRequest(f'{category}/{search_params}')
                 for account in accounts['items']:
                     if account['canBuyItem']:
-                        response = self.sendRequest(f'{account["item_id"]}/reserve', params={'price':account['price']}, method='POST')
+                        response = self.reserveAcc(item_id=account['item_id'], price=account['price'])
                         if error := response.get('errors'):
                             self.log (f'Не удалось зарезервировать аккаунт https://lzt.market/{account["item_id"]}\n{error}')
                             continue
