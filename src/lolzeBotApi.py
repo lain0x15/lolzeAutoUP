@@ -114,7 +114,13 @@ class lolzeBotApi:
     ) -> dict:
         response = self.sendRequest(f'{item_id}/stick', method='DELETE')
         return response
-    
+
+    def bumpAccount (
+        self,
+        item_id: int
+    ) -> dict:
+        return self.sendRequest(f'{item_id}/bump', method='POST')
+
     def getInfoAboutMe (self) -> dict:
         response = self.sendRequest('me')
         result = {

@@ -152,8 +152,7 @@ class lolzeAutoUP(lolzeBotApi):
             accounts = self.getAccounts(order=self.METHODBUMP)
             for account in accounts['items']:
                 if time.time() - account['refreshed_date'] > marketPermissions['bumpItemPeriod'] * 60 * 60:
-                    pathData = f'{account["item_id"]}/bump'
-                    response = self.sendRequest(pathData=pathData, method='POST')
+                    response = self.bumpAccount(item_id = account["item_id"])
                     if error := response.get('errors'):
                         self.log(f'Не удалось поднять аккаунт https://lzt.market/{account["item_id"]}\n{error}')
                         continue
