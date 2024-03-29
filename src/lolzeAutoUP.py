@@ -45,7 +45,6 @@ class lolzeAutoUP(lolzeBotApi):
         self.marketPermissions = {}
         self.proxies = proxies
         logging.basicConfig(filename='msg.log', filemode='a+', format='%(asctime)s\n%(message)s')
-        self.lastSendRequest = 0
 
     async def __sendReport (self):
         while True:
