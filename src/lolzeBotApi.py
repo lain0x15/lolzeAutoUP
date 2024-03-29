@@ -100,6 +100,20 @@ class lolzeBotApi:
     ) -> dict:
         return self.sendRequest(f'{item_id}/reserve', params={'price':price}, method='POST')
 
+    def buyAcc (
+            self,
+            item_id: int,
+            price: int
+    ) -> dict:
+        return self.sendRequest(f'{item_id}/fast-buy', params={'price':price}, method='POST')
+
+    def searchAcc (
+        self,
+        category: str,
+        search_params: str
+    ) -> dict:
+        return self.sendRequest(f'{category}/{search_params}')
+
     def bumpAccount (
         self, 
         item_id: int

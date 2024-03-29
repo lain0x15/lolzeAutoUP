@@ -204,7 +204,7 @@ class lolzeAutoUP(lolzeBotApi):
         while True:
             for url in self.autoBuyUrls:
                 category, search_params = parse_search_data(url['url'])
-                accounts = self.sendRequest(f'{category}/{search_params}')
+                accounts = self.searchAcc(category=category, search_params=search_params)
                 for account in accounts['items']:
                     if account['canBuyItem']:
                         response = self.reserveAcc(item_id=account['item_id'], price=account['price'])
@@ -218,7 +218,7 @@ class lolzeAutoUP(lolzeBotApi):
                             self.log (f'Недостаточно средств для покупки аккаунта https://lzt.market/{account["item_id"]} \
                             \nВаш баланс: {balance}\tСтоимость аккаунта: {account["price"]}\t Ваш лимит {self.limitSumOfBalace}')
                             continue
-                        res = self.sendRequest(f'{account["item_id"]}/fast-buy', params={'price':account['price']}, method='POST')
+                        res = self.buyAcc(item_id=account['item_id'], price=account['price'])
                         if error := res.get('errors'):
                             self.log (f'Не удалось купить аккаунт https://lzt.market/{account["item_id"]}\n{error}')
                             continue
