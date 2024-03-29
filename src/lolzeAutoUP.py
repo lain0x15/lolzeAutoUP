@@ -1,4 +1,4 @@
-import requests, asyncio, datetime, time, re, pprint, hashlib
+import requests, asyncio, datetime, time, pprint, hashlib
 import os
 from .telegramAPI import TelegramAPI
 from .lolzeBotApi import lolzeBotApi
@@ -42,10 +42,7 @@ class lolzeAutoUP(lolzeBotApi):
         self.telegramApi = TelegramAPI(self.telegramTOKEN) if self.telegramTOKEN != '' else None
         self.autoBuyUrls = urls
         self.limitSumOfBalace = limitSumOfBalace
-        self.marketPermissions = {}
-        self.proxies = proxies
         logging.basicConfig(filename='msg.log', filemode='a+', format='%(asctime)s\n%(message)s')
-        self.lastSendRequest = 0
 
     async def __sendReport (self):
         while True:
@@ -59,7 +56,7 @@ class lolzeAutoUP(lolzeBotApi):
             purchasedSum = 0
             paidCount = 0
             paidSum = 0
-            purchasedAccounts = self.sendRequest(f'/user//orders?order_by=pdate_to_down')['items']
+            purchasedAccounts = self.getPurchasedAccounts(order_by='pdate_to_down')
             for purchasedAccount in purchasedAccounts:
                 a = self.getAccountInformation(purchasedAccount["item_id"])
                 if (time.time() - a['buyer']['operation_date']) <= 24 * 60 * 60:
@@ -155,8 +152,7 @@ class lolzeAutoUP(lolzeBotApi):
             accounts = self.getAccounts(order=self.METHODBUMP)
             for account in accounts['items']:
                 if time.time() - account['refreshed_date'] > marketPermissions['bumpItemPeriod'] * 60 * 60:
-                    pathData = f'{account["item_id"]}/bump'
-                    response = self.sendRequest(pathData=pathData, method='POST')
+                    response = self.bumpAccount(item_id = account["item_id"])
                     if error := response.get('errors'):
                         self.log(f'Не удалось поднять аккаунт https://lzt.market/{account["item_id"]}\n{error}')
                         continue
@@ -198,31 +194,24 @@ class lolzeAutoUP(lolzeBotApi):
                 await asyncio.sleep(600)
          
     async def __autoBuy (self) -> None:
-        def parse_search_data (search_url: str):
-            parse = re.search(r"https://lzt.market/([\w\-]+)/(.+)", search_url)
-            if not parse:
-                raise TypeError("Format search URL is invalid")
-            category, search_params = parse.groups()
-            return category, search_params
         self.log('Автоматическая покупка запущена')
         while True:
             for url in self.autoBuyUrls:
-                category, search_params = parse_search_data(url['url'])
-                accounts = self.sendRequest(f'{category}/{search_params}')
+                accounts = self.searchAcc(url=url['url'])
                 for account in accounts['items']:
                     if account['canBuyItem']:
-                        response = self.sendRequest(f'{account["item_id"]}/reserve', params={'price':account['price']}, method='POST')
+                        response = self.reserveAcc(item_id=account['item_id'], price=account['price'])
                         if error := response.get('errors'):
                             self.log (f'Не удалось зарезервировать аккаунт https://lzt.market/{account["item_id"]}\n{error}')
                             continue
                         else:
                             self.log (f'Автобай зарезервировал аккаунт https://lzt.market/{account["item_id"]}')
-                        balance = self.sendRequest ('me')['user']['balance']
+                        balance = self.getInfoAboutMe()['balance']
                         if balance <= self.limitSumOfBalace:
                             self.log (f'Недостаточно средств для покупки аккаунта https://lzt.market/{account["item_id"]} \
                             \nВаш баланс: {balance}\tСтоимость аккаунта: {account["price"]}\t Ваш лимит {self.limitSumOfBalace}')
                             continue
-                        res = self.sendRequest(f'{account["item_id"]}/fast-buy', params={'price':account['price']}, method='POST')
+                        res = self.buyAcc(item_id=account['item_id'], price=account['price'])
                         if error := res.get('errors'):
                             self.log (f'Не удалось купить аккаунт https://lzt.market/{account["item_id"]}\n{error}')
                             continue

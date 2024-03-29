@@ -1,16 +1,25 @@
-import requests, asyncio, time
+import requests, asyncio, time, re
+
+class lolzeBotApiException(Exception):
+    def __init__(self, typeError=None):
+        if typeError == 'invalid_token':
+            self.message = 'invalid lolze token'
+        else:
+            self.message = 'unknown lolze error'
+    def __str__(self):
+        return f'{self.message}'
 
 class lolzeBotApi:
     def __init__(
         self, 
         token: str
     ):
-        self.headers = {
+        self.__headers = {
             "accept": "application/json",
             "authorization": f"Bearer {token}"
         }
-        self.base_url_market = "https://api.lzt.market/"
-        self.lastSendRequest = 0
+        self.__base_url_market = "https://api.lzt.market/"
+        self.__lastSendRequest = 0
     
     def sendRequest (
         self, 
@@ -18,15 +27,15 @@ class lolzeBotApi:
         method: str = 'GET',
         params: dict = {}
     ) -> dict:
-        if (t := time.time() - self.lastSendRequest) < 3:
+        if (t := time.time() - self.__lastSendRequest) < 3:
             time.sleep(3 - t)
-        url = self.base_url_market + pathData
+        url = self.__base_url_market + pathData
         if method == 'GET':
-            response = requests.get (url, params=params, headers=self.headers)
+            response = requests.get (url, params=params, headers=self.__headers)
         elif method == 'POST':
-            response = requests.post (url, params=params, headers=self.headers)
+            response = requests.post (url, params=params, headers=self.__headers)
         elif method == 'DELETE':
-            response = requests.delete (url, params=params, headers=self.headers)
+            response = requests.delete (url, params=params, headers=self.__headers)
         if response.status_code == 200:
             response = response.json()
         elif response.status_code == 400:
@@ -37,7 +46,9 @@ class lolzeBotApi:
             raise Exception(f'Слишком много запросов к api сайта. Сайт выдал ошибку {response.status_code}')
         else:
             raise Exception(f'Сайт выдал ошибку {response.status_code}')
-        self.lastSendRequest = time.time()
+        self.__lastSendRequest = time.time()
+        if response.get('error') in ['invalid_token']:
+            raise lolzeBotApiException(typeError = response['error'])
         return response
         
     def getOwnedAccounts (
@@ -81,7 +92,30 @@ class lolzeBotApi:
             'hasAccessToMarket': permissions['hasAccessToMarket']
         }
         return result
-    
+    def reserveAcc (
+            self,
+            item_id: int,
+            price: int
+    ) -> dict:
+        return self.sendRequest(f'{item_id}/reserve', params={'price':price}, method='POST')
+
+    def buyAcc (
+            self,
+            item_id: int,
+            price: int
+    ) -> dict:
+        return self.sendRequest(f'{item_id}/fast-buy', params={'price':price}, method='POST')
+
+    def searchAcc (
+        self,
+        url
+    ) -> dict:
+        parse = re.search(r"https://lzt.market/([\w\-]+)/(.+)", url)
+        if not parse:
+            raise TypeError("Format search URL is invalid")
+        category, search_params = parse.groups()
+        return self.sendRequest(f'{category}/{search_params}')
+
     def bumpAccount (
         self, 
         item_id: int
@@ -102,7 +136,13 @@ class lolzeBotApi:
     ) -> dict:
         response = self.sendRequest(f'{item_id}/stick', method='DELETE')
         return response
-    
+
+    def bumpAccount (
+        self,
+        item_id: int
+    ) -> dict:
+        return self.sendRequest(f'{item_id}/bump', method='POST')
+
     def getInfoAboutMe (self) -> dict:
         response = self.sendRequest('me')
         result = {
@@ -122,3 +162,9 @@ class lolzeBotApi:
             'price': response['item']['price']
         }
         return result
+
+    def getPurchasedAccounts (
+            self,
+            order_by: str ='pdate_to_down'
+    ):
+        return self.sendRequest(f'/user//orders?order_by={order_by}')['items']
