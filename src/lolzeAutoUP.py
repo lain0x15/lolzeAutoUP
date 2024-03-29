@@ -42,8 +42,6 @@ class lolzeAutoUP(lolzeBotApi):
         self.telegramApi = TelegramAPI(self.telegramTOKEN) if self.telegramTOKEN != '' else None
         self.autoBuyUrls = urls
         self.limitSumOfBalace = limitSumOfBalace
-        self.marketPermissions = {}
-        self.proxies = proxies
         logging.basicConfig(filename='msg.log', filemode='a+', format='%(asctime)s\n%(message)s')
 
     async def __sendReport (self):
