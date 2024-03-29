@@ -1,4 +1,4 @@
-import requests, asyncio, time
+import requests, asyncio, time, re
 
 class lolzeBotApiException(Exception):
     def __init__(self, typeError=None):
@@ -8,7 +8,6 @@ class lolzeBotApiException(Exception):
             self.message = 'unknown lolze error'
     def __str__(self):
         return f'{self.message}'
-
 
 class lolzeBotApi:
     def __init__(
@@ -109,9 +108,12 @@ class lolzeBotApi:
 
     def searchAcc (
         self,
-        category: str,
-        search_params: str
+        url
     ) -> dict:
+        parse = re.search(r"https://lzt.market/([\w\-]+)/(.+)", url)
+        if not parse:
+            raise TypeError("Format search URL is invalid")
+        category, search_params = parse.groups()
         return self.sendRequest(f'{category}/{search_params}')
 
     def bumpAccount (

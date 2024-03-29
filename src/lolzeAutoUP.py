@@ -1,4 +1,4 @@
-import requests, asyncio, datetime, time, re, pprint, hashlib
+import requests, asyncio, datetime, time, pprint, hashlib
 import os
 from .telegramAPI import TelegramAPI
 from .lolzeBotApi import lolzeBotApi
@@ -194,17 +194,10 @@ class lolzeAutoUP(lolzeBotApi):
                 await asyncio.sleep(600)
          
     async def __autoBuy (self) -> None:
-        def parse_search_data (search_url: str):
-            parse = re.search(r"https://lzt.market/([\w\-]+)/(.+)", search_url)
-            if not parse:
-                raise TypeError("Format search URL is invalid")
-            category, search_params = parse.groups()
-            return category, search_params
         self.log('Автоматическая покупка запущена')
         while True:
             for url in self.autoBuyUrls:
-                category, search_params = parse_search_data(url['url'])
-                accounts = self.searchAcc(category=category, search_params=search_params)
+                accounts = self.searchAcc(url=url['url'])
                 for account in accounts['items']:
                     if account['canBuyItem']:
                         response = self.reserveAcc(item_id=account['item_id'], price=account['price'])
