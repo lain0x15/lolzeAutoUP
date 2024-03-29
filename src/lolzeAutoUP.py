@@ -216,7 +216,7 @@ class lolzeAutoUP(lolzeBotApi):
                             continue
                         else:
                             self.log (f'Автобай зарезервировал аккаунт https://lzt.market/{account["item_id"]}')
-                        balance = self.sendRequest ('me')['user']['balance']
+                        balance = self.getInfoAboutMe()['balance']
                         if balance <= self.limitSumOfBalace:
                             self.log (f'Недостаточно средств для покупки аккаунта https://lzt.market/{account["item_id"]} \
                             \nВаш баланс: {balance}\tСтоимость аккаунта: {account["price"]}\t Ваш лимит {self.limitSumOfBalace}')
