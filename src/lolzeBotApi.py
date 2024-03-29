@@ -122,3 +122,9 @@ class lolzeBotApi:
             'price': response['item']['price']
         }
         return result
+
+    def getPurchasedAccounts (
+            self,
+            order_by: str ='pdate_to_down'
+    ):
+        return self.sendRequest(f'/user//orders?order_by={order_by}')['items']

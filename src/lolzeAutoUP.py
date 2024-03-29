@@ -58,7 +58,7 @@ class lolzeAutoUP(lolzeBotApi):
             purchasedSum = 0
             paidCount = 0
             paidSum = 0
-            purchasedAccounts = self.sendRequest(f'/user//orders?order_by=pdate_to_down')['items']
+            purchasedAccounts = self.getPurchasedAccounts(order_by='pdate_to_down')
             for purchasedAccount in purchasedAccounts:
                 a = self.getAccountInformation(purchasedAccount["item_id"])
                 if (time.time() - a['buyer']['operation_date']) <= 24 * 60 * 60:
