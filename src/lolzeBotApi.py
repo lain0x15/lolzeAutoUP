@@ -53,7 +53,7 @@ class lolzeBotApi:
         
     def getOwnedAccounts (
         self, 
-        shows: list = ['active', 'paid', 'deleted', 'awaiting'], 
+        shows: list = ['active', 'paid', 'deleted', 'awaiting'],
         limitPagesInShow: int = 1, 
         order_by: str = 'price_to_down'
     ) -> dict: 

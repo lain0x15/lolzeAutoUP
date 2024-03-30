@@ -149,8 +149,8 @@ class lolzeAutoUP(lolzeBotApi):
                 sleepTime = sleepTime if sleepTime > 0 else 0
                 await asyncio.sleep(sleepTime)
                 continue
-            accounts = self.getAccounts(order=self.METHODBUMP)
-            for account in accounts['items']:
+            accounts = self.getOwnedAccounts(shows=['active'], order_by=self.METHODBUMP)['active']
+            for account in accounts:
                 if time.time() - account['refreshed_date'] > marketPermissions['bumpItemPeriod'] * 60 * 60:
                     response = self.bumpAccount(item_id = account["item_id"])
                     if error := response.get('errors'):
