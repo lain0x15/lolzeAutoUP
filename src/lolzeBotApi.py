@@ -36,6 +36,8 @@ class lolzeBotApi:
             response = requests.post (url, params=params, headers=self.__headers)
         elif method == 'DELETE':
             response = requests.delete (url, params=params, headers=self.__headers)
+        else:
+            raise Exception (f'Неправильный метод {method}, ожидается GET, POST, DELETE')
         if response.status_code == 200:
             response = response.json()
         elif response.status_code == 400:
