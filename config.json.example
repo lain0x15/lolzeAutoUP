@@ -1,24 +1,48 @@
 {
-    "lolzeAutoUP": {
-        "botName": ""
-    },
     "lolze": {
-        "token": "",
-        "METHODBUMP": 0,
-        "METHODSTICKY": 0,
-        "limitSumOfBalace": 0,
-        "sendReports": 0,
-        "marketURLs": [
+        "clients": [
             {
-                "url": "https://lzt.market/mihoyo/?pmax=5" 
-            },
-            {
-                "url": "https://lzt.market/mihoyo/?pmax=6" 
+                "token":"",
+                "proxy": {}
             }
         ]
     },
     "telegram": {
+        "enabled": true,
         "token": "",
         "userIDs": []
+    },
+    "modules": {
+        "bump": {
+            "enabled": true,
+            "params":{
+                "methodBump": "price_to_up"
+            }
+        },
+        "stick": {
+            "enabled": true,
+            "params":{
+                "methodSticky": "price_to_up"
+            } 
+        },
+        "sendReports":
+        {
+            "enabled": true,
+            "params":{} 
+        },
+        "autoBuy": {
+            "enabled": true,
+            "params":{
+                "limitSumOfBalace": 0,
+                "marketURLs": [
+                    {
+                        "url": "https://lzt.market/mihoyo/?pmax=5" 
+                    },
+                    {
+                        "url": "https://lzt.market/mihoyo/?pmax=6" 
+                    }
+                ]
+            }
+        }
     }
 }

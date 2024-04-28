@@ -12,14 +12,10 @@ class lolzeBotApiException(Exception):
 class lolzeBotApi:
     def __init__(
         self, 
-        token: str
+        clients: list
     ):
-        self.__headers = {
-            "accept": "application/json",
-            "authorization": f"Bearer {token}"
-        }
         self.__base_url_market = "https://api.lzt.market/"
-        self.__lastSendRequest = 0
+        self.__clients = clients
     
     def sendRequest (
         self, 
@@ -27,31 +23,41 @@ class lolzeBotApi:
         method: str = 'GET',
         params: dict = {}
     ) -> dict:
-        if (t := time.time() - self.__lastSendRequest) < 3:
-            time.sleep(3 - t)
-        url = self.__base_url_market + pathData
-        if method == 'GET':
-            response = requests.get (url, params=params, headers=self.__headers)
-        elif method == 'POST':
-            response = requests.post (url, params=params, headers=self.__headers)
-        elif method == 'DELETE':
-            response = requests.delete (url, params=params, headers=self.__headers)
-        else:
-            raise Exception (f'Неправильный метод {method}, ожидается GET, POST, DELETE')
-        if response.status_code == 200:
-            response = response.json()
-        elif response.status_code == 400:
-            raise Exception(f'Сайт выдал ошибку {response.status_code}\nпри запросе к ссылке {url}\n{response.content}')
-        elif response.status_code == 403:
-            response = response.json()
-        elif response.status_code == 429:
-            raise Exception(f'Слишком много запросов к api сайта. Сайт выдал ошибку {response.status_code}')
-        else:
-            raise Exception(f'Сайт выдал ошибку {response.status_code}')
-        self.__lastSendRequest = time.time()
-        if response.get('error') in ['invalid_token']:
-            raise lolzeBotApiException(typeError = response['error'])
-        return response
+        client = self.__clients.pop(0)
+        try:
+            lastSendRequest = client.get ('lastSendRequest', time.time())
+            if (t := time.time() - lastSendRequest) < 3:
+                time.sleep(3 - t)
+            headers = {
+                "accept": "application/json",
+                "authorization": f"Bearer {client['token']}"
+            }
+            url = self.__base_url_market + pathData
+            if method == 'GET':
+                response = requests.get (url, params=params, headers=headers, proxies=client['proxy'])
+            elif method == 'POST':
+                response = requests.post (url, params=params, headers=headers, proxies=client['proxy'])
+            elif method == 'DELETE':
+                response = requests.delete (url, params=params, headers=headers, proxies=client['proxy'])
+            else:
+                raise Exception (f'Неправильный метод {method}, ожидается GET, POST, DELETE')
+            if response.status_code == 200:
+                response = response.json()
+            elif response.status_code == 400:
+                raise Exception(f'Сайт выдал ошибку {response.status_code}\nпри запросе к ссылке {url}\n{response.content}')
+            elif response.status_code == 403:
+                response = response.json()
+            elif response.status_code == 429:
+                raise Exception(f'Слишком много запросов к api сайта. Сайт выдал ошибку {response.status_code}')
+            else:
+                raise Exception(f'Сайт выдал ошибку {response.status_code}')
+            self.__lastSendRequest = time.time()
+            if response.get('error') in ['invalid_token']:
+                raise lolzeBotApiException(typeError = response['error'])
+            return response
+        finally:
+            client.update ({'lastSendRequest':time.time()})
+            self.__clients.append(client)
         
     def getOwnedAccounts (
         self, 

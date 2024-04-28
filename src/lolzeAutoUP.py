@@ -1,8 +1,10 @@
-import requests, asyncio, datetime, time, pprint, hashlib
+import asyncio, datetime, time, pprint, hashlib
 import os
 from .telegramAPI import TelegramAPI
 from .lolzeBotApi import lolzeBotApi
 import logging
+from pathlib import Path
+import json
 
 class lolzeAutoUpErrorStop(Exception):
     def __init__(self, *args):
@@ -17,80 +19,101 @@ class lolzeAutoUpErrorStop(Exception):
         else:
             return 'lolzeAutoUpErrorStop has been raised'
 
-class lolzeAutoUP(lolzeBotApi):
+class lolzeAutoUP:
     def __init__(
         self, 
-        token: str,
-        methodBump: int,
-        methodSticky: int,
-        telegramToken: int,
-        telegramUserIDs: int,
-        urls: str, 
-        limitSumOfBalace: int,
-        proxies: dict = {},
-        botName: str = '',
-        sendReports: bool = False
+        configFilePath = 'config.json'
     ) -> None:
-        super().__init__(token)
-        self.status = 'started'
-        self.botName = botName
-        self.METHODBUMP = self.getOrderByNumber(methodBump)
-        self.METHODSTICKY = self.getOrderByNumber(methodSticky)
-        self.sendReports = sendReports
-        self.telegramTOKEN = telegramToken
-        self.telegramUserID = telegramUserIDs
-        self.telegramApi = TelegramAPI(self.telegramTOKEN) if self.telegramTOKEN != '' else None
-        self.autoBuyUrls = urls
-        self.limitSumOfBalace = limitSumOfBalace
         logging.basicConfig(filename='msg.log', filemode='a+', format='%(asctime)s\n%(message)s')
 
-    async def __sendReport (self):
-        while True:
-            report = ''
-            profile = self.getInfoAboutMe()
-            balance = profile['balance']
-            hold = profile['hold']
-            accounts = self.getAccounts()
-            linksCount = len(self.autoBuyUrls)
-            purchasedCount = 0
-            purchasedSum = 0
-            paidCount = 0
-            paidSum = 0
-            purchasedAccounts = self.getPurchasedAccounts(order_by='pdate_to_down')
-            for purchasedAccount in purchasedAccounts:
-                a = self.getAccountInformation(purchasedAccount["item_id"])
-                if (time.time() - a['buyer']['operation_date']) <= 24 * 60 * 60:
-                    purchasedCount += 1
-                    purchasedSum += a['price']
-                else:
-                    break
+        self.__configFilePath = configFilePath
+        self.__status = 'running'
+        self.events = []
+        self.__config = {}
+        self.__modules = {
+            "bump": {
+                "run": self.__bump,
+                "nextRun": 0
+            },
+            "sendReports": {
+                "run": self.__sendReport,
+                "nextRun": 0
+            },
+            "stick": {
+                "run": self.__sticky,
+                "nextRun": 0
+            },
+            "autoBuy": {
+                "run": self.__autoBuy,
+                "nextRun": 0
+            }
+        }
+
+    def __loadConfig(self):
+        self.__log (f'Проверяю существование файла конфигурации: {self.__configFilePath}')
+        configFilePath = Path(self.__configFilePath)
+        if configFilePath.is_file():
+            self.__log ('Файл конфигурации существует')
+        else:
+            raise Exception (f'Не существует файла конфигурации {self.__configFilePath}')
+        self.__log ('Загружаю данные из файла конфигурации')
+        with open (configFilePath) as config:
+            tmpConfig = json.load(config)
+            if sorted(tmpConfig.items()) != sorted(self.__config.items()):
+                self.__config = tmpConfig
+                self.__log ('Конфигурация загружена успешно')
+                return {'status': 'changed'}
             else:
-                purchasedCount = -1
-            paidAccounts = self.getOwnedAccounts (shows=['paid'], order_by='pdate_to_down')['paid']
-            for paidAccount in paidAccounts:
-                a = self.getAccountInformation(paidAccount["item_id"])
-                if (time.time() - a['buyer']['operation_date']) <= 24 * 60 * 60:
-                    paidCount += 1
-                    paidSum += a['price']
-                else:
-                    break
+                self.__log ('Конфигурация загружена успешно. Изменений в конфигурации нету')
+                return {'status': 'ok'}
+
+
+    def __sendReport (self):
+        report = ''
+        profile = self.__lolzeBotApi.getInfoAboutMe()
+        balance = profile['balance']
+        hold = profile['hold']
+        accounts = self.getAccounts()
+        linksCount = len(self.__config['modules']['autoBuy']['params']['marketURLs'])
+        purchasedCount = 0
+        purchasedSum = 0
+        paidCount = 0
+        paidSum = 0
+        purchasedAccounts = self.__lolzeBotApi.getPurchasedAccounts(order_by='pdate_to_down')
+        for purchasedAccount in purchasedAccounts:
+            a = self.__lolzeBotApi.getAccountInformation(purchasedAccount["item_id"])
+            if (time.time() - a['buyer']['operation_date']) <= 24 * 60 * 60:
+                purchasedCount += 1
+                purchasedSum += a['price']
             else:
-                paidCount = -1
-            report += f'Баланс: {balance} + {hold}\n'
-            report += f'Кол-во аккаунтов: {accounts["totalItems"]}\n'
-            report += f'На сумму: {accounts["totalItemsPrice"]}\n'
-            report += f'Закреплённых аккаунтов: {accounts["userItemStates"]["stickied"]["item_count"]}\n'
-            report += f'Ссылок в автобае: {linksCount}\n'
-            report += f'Куплено за 24 часа: {purchasedCount} на сумму {purchasedSum}\n'
-            report += f'Продано за 24 часа: {paidCount} на сумму {paidSum}'
-            self.log(report)
-            await asyncio.sleep(3600)
+                break
+        else:
+            purchasedCount = -1
+        paidAccounts = self.__lolzeBotApi.getOwnedAccounts (shows=['paid'], order_by='pdate_to_down')['paid']
+        for paidAccount in paidAccounts:
+            a = self.__lolzeBotApi.getAccountInformation(paidAccount["item_id"])
+            if (time.time() - a['buyer']['operation_date']) <= 24 * 60 * 60:
+                paidCount += 1
+                paidSum += a['price']
+            else:
+                break
+        else:
+            paidCount = -1
+        report += f'Баланс: {balance} + {hold}\n'
+        report += f'Кол-во аккаунтов: {accounts["totalItems"]}\n'
+        report += f'На сумму: {accounts["totalItemsPrice"]}\n'
+        report += f'Закреплённых аккаунтов: {accounts["userItemStates"]["stickied"]["item_count"]}\n'
+        report += f'Ссылок в автобае: {linksCount}\n'
+        report += f'Куплено за 24 часа: {purchasedCount} на сумму {purchasedSum}\n'
+        report += f'Продано за 24 часа: {paidCount} на сумму {paidSum}'
+        self.__log(report)
+        self.__modules['sendReports']['nextRun'] = time.time() + 3600
     
     def getAccounts(
         self, 
         order: str = 'price_to_down'
     ) -> dict:
-        return self.sendRequest(pathData='user/items', params={'order_by':order})
+        return self.__lolzeBotApi.sendRequest(pathData='user/items', params={'order_by':order})
     
     def sendTelegramMessage (
         self, 
@@ -99,26 +122,26 @@ class lolzeAutoUP(lolzeBotApi):
         try:
             if self.telegramApi is None:
                 return
-            for telegramID in self.telegramUserID:
+            for telegramID in self.__config.get('telegram')['userIDs']:
                 self.telegramApi.send_message(message, telegramID)
         except Exception as err:
             pass
     
-    def log (
+
+    def __log (
         self, 
         message: str
     ) -> None:
-        message = message if self.botName == '' else f'{self.botName}:\n{message}'
         logging.warning(message)
         print (message)
         self.sendTelegramMessage(message)
-    
+
     def getLastBumps (
         self, 
         count: int
     ) -> list:
         lastBumps = [0 for _ in range(count)]
-        accounts = self.getOwnedAccounts(order_by='pdate_to_down')
+        accounts = self.__lolzeBotApi.getOwnedAccounts(order_by='pdate_to_down')
         for accountShowType in accounts:
             for account in accounts[accountShowType][:count]:
                 if account['published_date'] != account['refreshed_date']:
@@ -128,138 +151,91 @@ class lolzeAutoUP(lolzeBotApi):
                         lastBumps.pop()
         return lastBumps
  
-    async def __bump (self) -> None:
-        self.log('Поднятие аккаунтов запущено')
-        while True:
-            marketPermissions = self.getMarketPermissions()
-            if marketPermissions['hasAccessToMarket'] != True:
-                raise Exception ('Нет доступа к маркету')
-            if marketPermissions['canBumpOwnItem'] != True:
-                raise Exception ('Нет прав на поднятия аккаунтов')
-            countAvailableBumps = 0
-            lastBumps = self.getLastBumps(marketPermissions['bumpItemCountInPeriod'])
-            for lastBump in lastBumps:
-                if time.time() - lastBump >= marketPermissions['bumpItemPeriod'] * 60 * 60:
-                    countAvailableBumps += 1
-            if countAvailableBumps <= 0:
-                nextBumpDate = lastBumps.pop() + marketPermissions['bumpItemPeriod'] * 60 * 60
-                sleepTime = nextBumpDate - time.time()
-                nextBumpDate = datetime.datetime.fromtimestamp(nextBumpDate).strftime('%d-%m-%Y %H:%M:%S')
-                self.log (f'Осталось поднятий: {countAvailableBumps}\nДата следующей попытки поднятия: {nextBumpDate}')
-                sleepTime = sleepTime if sleepTime > 0 else 0
-                await asyncio.sleep(sleepTime)
-                continue
-            accounts = self.getOwnedAccounts(shows=['active'], order_by=self.METHODBUMP)['active']
-            for account in accounts:
-                if time.time() - account['refreshed_date'] > marketPermissions['bumpItemPeriod'] * 60 * 60:
-                    response = self.bumpAccount(item_id = account["item_id"])
-                    if error := response.get('errors'):
-                        self.log(f'Не удалось поднять аккаунт https://lzt.market/{account["item_id"]}\n{error}')
-                        continue
-                    self.log(f'Поднят аккаунт https://lzt.market/{account["item_id"]}')
-                    if (countAvailableBumps := countAvailableBumps - 1) <= 0:
-                        break
-            else:
-                nextBumpDate = datetime.datetime.fromtimestamp(3600 + time.time() ).strftime('%d-%m-%Y %H:%M:%S')
-                self.log (f'Осталось поднятий: {countAvailableBumps}\nНет аккаунтов для поднятия. Следующая попытка поднятия {nextBumpDate}')
-                await asyncio.sleep(3600)
-     
-    def getOrderByNumber (
-        self, 
-        number: int
-    ) -> str:
-        if number == 1:
-            return 'price_to_up'
-        elif number == 2:
-            return 'price_to_down'
-        elif number == 3:
-            return 'pdate_to_up'
+    def __bump (self, methodBump) -> None:
+        self.__log('Поднятие аккаунтов запущено')
+        self.__log('Проверяю разрешения на маркет')
+        marketPermissions = self.__lolzeBotApi.getMarketPermissions()
+        if marketPermissions['hasAccessToMarket'] != True or marketPermissions['canBumpOwnItem'] != True:
+            raise Exception ('Нет доступа к маркету или Нет прав на поднятия аккаунтов')
         else:
-            return None
-    
-    async def __sticky(self) -> None:
-        self.log('Закреплениие аккаунтов запущено')
+            self.__log('Права на поднятие аккаунтов присутствуют')
+
+        countAvailableBumps = 0
+        lastBumps = self.getLastBumps(marketPermissions['bumpItemCountInPeriod'])
+        for lastBump in lastBumps:
+            if time.time() - lastBump >= marketPermissions['bumpItemPeriod'] * 60 * 60:
+                countAvailableBumps += 1
+        if countAvailableBumps <= 0:
+            nextBumpDate = lastBumps.pop() + marketPermissions['bumpItemPeriod'] * 60 * 60
+            sleepTime = nextBumpDate - time.time()
+            nextBumpDate = datetime.datetime.fromtimestamp(nextBumpDate).strftime('%d-%m-%Y %H:%M:%S')
+            self.__log (f'Осталось поднятий: {countAvailableBumps}\nДата следующей попытки поднятия: {nextBumpDate}')
+            sleepTime = sleepTime if sleepTime > 0 else 0
+            self.__modules['bump']['nextRun'] = time.time() + sleepTime
+            return
+        accounts = self.__lolzeBotApi.getOwnedAccounts(shows=['active'], order_by=methodBump)['active']
+        for account in accounts:
+            if time.time() - account['refreshed_date'] > marketPermissions['bumpItemPeriod'] * 60 * 60:
+                response = self.__lolzeBotApi.bumpAccount(item_id = account["item_id"])
+                if error := response.get('errors'):
+                    self.__log(f'Не удалось поднять аккаунт https://lzt.market/{account["item_id"]}\n{error}')
+                    continue
+                self.__log(f'Поднят аккаунт https://lzt.market/{account["item_id"]}')
+                if (countAvailableBumps := countAvailableBumps - 1) <= 0:
+                    break
+        else:
+            nextBumpDate = datetime.datetime.fromtimestamp(3600 + time.time() ).strftime('%d-%m-%Y %H:%M:%S')
+            self.__log (f'Осталось поднятий: {countAvailableBumps}\nНет аккаунтов для поднятия. Следующая попытка поднятия {nextBumpDate}')
+            self.__modules['bump']['nextRun'] = time.time() + 3600
+
+    def __sticky(self, methodSticky) -> None:
+        self.__log('Закреплениие аккаунтов запущено')
         while True:
-            accounts = self.getOwnedAccounts(shows=['active'], order_by=self.METHODSTICKY)
+            accounts = self.__lolzeBotApi.getOwnedAccounts(shows=['active'], order_by=methodSticky)
             gen = [account for account in accounts['active'] if account['canStickItem']]
             if gen != []:
-                data = self.stickAccount(gen[0]["item_id"])
+                data = self.__lolzeBotApi.stickAccount(gen[0]["item_id"])
                 if error := data.get('errors'):
-                    self.log(f'Не удалось закрепить https://lzt.market/{gen[0]["item_id"]}\n{error}')
-                    await asyncio.sleep(20)
-                    continue
-                self.log(f'Закреплен https://lzt.market/{gen[0]["item_id"]}')
+                    self.__log(f'Не удалось закрепить https://lzt.market/{gen[0]["item_id"]}\n{error}')
+                    return
+                self.__log(f'Закреплен https://lzt.market/{gen[0]["item_id"]}')
             else:
-                self.log(f'Нечего закреплять')
-                await asyncio.sleep(600)
+                self.__log(f'Нечего закреплять')
+                self.__modules['stick']['nextRun'] = time.time() + 600
+                break
          
-    async def __autoBuy (self) -> None:
-        self.log('Автоматическая покупка запущена')
-        while True:
-            for url in self.autoBuyUrls:
-                accounts = self.searchAcc(url=url['url'])
-                for account in accounts['items']:
-                    if account['canBuyItem']:
-                        response = self.reserveAcc(item_id=account['item_id'], price=account['price'])
-                        if error := response.get('errors'):
-                            self.log (f'Не удалось зарезервировать аккаунт https://lzt.market/{account["item_id"]}\n{error}')
-                            continue
-                        else:
-                            self.log (f'Автобай зарезервировал аккаунт https://lzt.market/{account["item_id"]}')
-                        balance = self.getInfoAboutMe()['balance']
-                        if balance <= self.limitSumOfBalace:
-                            self.log (f'Недостаточно средств для покупки аккаунта https://lzt.market/{account["item_id"]} \
-                            \nВаш баланс: {balance}\tСтоимость аккаунта: {account["price"]}\t Ваш лимит {self.limitSumOfBalace}')
-                            continue
-                        res = self.buyAcc(item_id=account['item_id'], price=account['price'])
-                        if error := res.get('errors'):
-                            self.log (f'Не удалось купить аккаунт https://lzt.market/{account["item_id"]}\n{error}')
-                            continue
-                        self.log (f'Автобай купил аккаунт https://lzt.market/{account["item_id"]}')
-                        break
-                    else:
-                        self.log (f'Автобай нашел аккаунт, но не смог его купить https://lzt.market/{account["item_id"]}')
-            await asyncio.sleep(0)
+    def __autoBuy (self, marketURLs, limitSumOfBalace=0) -> None:
+        self.__log('Автоматическая покупка запущена')
+        for url in marketURLs:
+            accounts = self.__lolzeBotApi.searchAcc(url=url['url'])
+            for account in accounts['items']:
+                if account['canBuyItem']:
+                    balance = self.__lolzeBotApi.getInfoAboutMe()['balance']
+                    if balance <= limitSumOfBalace:
+                        self.__log (f'Недостаточно средств для покупки аккаунта https://lzt.market/{account["item_id"]} \
+                        \nВаш баланс: {balance}\tСтоимость аккаунта: {account["price"]}\t Ваш лимит {self.limitSumOfBalace}')
+                        continue
+                    res = self.__lolzeBotApi.buyAcc(item_id=account['item_id'], price=account['price'])
+                    if error := res.get('errors'):
+                        self.__log (f'Не удалось купить аккаунт https://lzt.market/{account["item_id"]}\n{error}')
+                        continue
+                    self.__log (f'Автобай купил аккаунт https://lzt.market/{account["item_id"]}')
+                    break
+                else:
+                    self.__log (f'Автобай нашел аккаунт, но не смог его купить https://lzt.market/{account["item_id"]}')
     
-    async def __controllerStatus (self) -> None:
-        while True:
-            if self.status == 'started':
-                pass
-            elif self.status == 'stop':
-                raise lolzeAutoUpErrorStop(f'Остановка бота. Задан статус боту {self.status}')
-            await asyncio.sleep(20)
-    
-    def setStatus (self, status):
-        self.status = status
-    
-    async def run (self):
-        while True:
+    def run (self):
+        while self.__status == 'running':
             try:
-                self.log('Бот запущен')
-                if self.status == 'stop':
-                    raise lolzeAutoUpErrorStop(f'Остановка бота. Задан статус боту {self.status}')
-                tasks = []
-                tasks.append(self.__controllerStatus())
-                if self.sendReports == True:
-                    tasks.append(self.__sendReport())
-                if self.METHODBUMP is not None:
-                    tasks.append(self.__bump())
-                if self.METHODSTICKY is not None:
-                    tasks.append(self.__sticky())
-                if self.autoBuyUrls != []:
-                    tasks.append(self.__autoBuy())
-                tasks = list(map(asyncio.ensure_future, tasks))
-                groupTask = asyncio.gather(*tasks)
-                await groupTask
-            except requests.exceptions.ConnectionError:
-                self.log('Ошибка соединения с сайтом')
-            except lolzeAutoUpErrorStop as err:
-                self.log(f'Ошибка: {err}')
-                return 0
-            except Exception as err:
-                self.log(f'Ошибка: {err}')
+                if self.__loadConfig()['status'] == 'changed':
+                    self.__lolzeBotApi = lolzeBotApi(self.__config['lolze']['clients'])
+                    self.telegramApi = TelegramAPI(self.__config.get('telegram')['token']) if self.__config.get('telegram')['enabled'] else ''
+                for module in self.__config['modules']:
+                    if self.__config['modules'][module]['enabled'] == True and self.__modules[module]['nextRun'] <= time.time():
+                        params = self.__config['modules'][module]['params']
+                        self.__modules[module]['run'](**params)
             finally:
-                self.log('Завершение работы бота')
-                for task in tasks:
-                    task.cancel()
-                await asyncio.sleep(5)
+                pass
+
+
+
