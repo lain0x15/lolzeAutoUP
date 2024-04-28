@@ -30,6 +30,13 @@
             "enabled": true,
             "params":{} 
         },
+        "autoSell":
+        {
+            "enabled": true,
+            "params": {
+                "percent": 10
+            }
+        },
         "autoBuy": {
             "enabled": true,
             "params":{

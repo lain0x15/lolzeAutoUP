@@ -28,7 +28,7 @@ class lolzeAutoUP:
 
         self.__configFilePath = configFilePath
         self.__status = 'running'
-        self.events = []
+        self.__events = []
         self.__config = {}
         self.__modules = {
             "bump": {
@@ -46,8 +46,18 @@ class lolzeAutoUP:
             "autoBuy": {
                 "run": self.__autoBuy,
                 "nextRun": 0
+            },
+            "autoSell": {
+                "run": self.__autoSell,
+                "excludeItem_id": [],
+                "nextRun": 0
             }
         }
+
+    def __addEvent (self, event):
+        if len(self.__events) > 100:
+            self.__events.pop(0)
+        self.__events.append (event)
 
     def __loadConfig(self):
         self.__log (f'Проверяю существование файла конфигурации: {self.__configFilePath}')
@@ -220,15 +230,40 @@ class lolzeAutoUP:
                         self.__log (f'Не удалось купить аккаунт https://lzt.market/{account["item_id"]}\n{error}')
                         continue
                     self.__log (f'Автобай купил аккаунт https://lzt.market/{account["item_id"]}')
+                    self.__addEvent(
+                        {
+                            'type':'buy',
+                            'item_id': 'item_id'
+                        }
+                    )
                     break
                 else:
                     self.__log (f'Автобай нашел аккаунт, но не смог его купить https://lzt.market/{account["item_id"]}')
     
+    def __autoSell(self, percent):
+        iCanSellcategory_id = [13,]
+        buyEvents = [event for event in self.__events if event['type']=='buy' and event['item_id'] not in self.__modules['autoSell']['excludeItem_id']]
+        for buyEvent in buyEvents:
+            if (account := self.__lolzeBotApi.getAccountInformation(buyEvent['item_id']))['category_id'] in iCanSellcategory_id:
+                category_id = account['category_id']
+                price = round (account['price'] + account['price'] * percent/100)
+                title = 'valorant'
+                title_en = 'valorant'
+                login = account['loginData']['login']
+                password = account['loginData']['password']
+                raw = account['loginData']['raw']
+                response = self.__lolzeBotApi.sellAccount(category_id=category_id, price=price, title=title, login=login, password=password, raw=raw, title_en=title_en)
+                if error := response.get('errors'):
+                    self.__log (f'Не удалось выставить на продажу https://lzt.market/{buyEvent["item_id"]}\n{error}')
+                    self.__modules['autoSell']['excludeItem_id'].append(buyEvent["item_id"])
+                    continue
+
+
     def run (self):
         while self.__status == 'running':
             try:
                 if self.__loadConfig()['status'] == 'changed':
-                    self.__lolzeBotApi = lolzeBotApi(self.__config['lolze']['clients'])
+                    self.__lolzeBotApi = lolzeBotApi([x.copy() for x in self.__config['lolze']['clients']])
                     self.telegramApi = TelegramAPI(self.__config.get('telegram')['token']) if self.__config.get('telegram')['enabled'] else ''
                 for module in self.__config['modules']:
                     if self.__config['modules'][module]['enabled'] == True and self.__modules[module]['nextRun'] <= time.time():

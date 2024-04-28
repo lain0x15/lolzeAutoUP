@@ -1,4 +1,4 @@
-import requests, asyncio, time, re
+import requests, asyncio, time, re, pprint
 
 class lolzeBotApiException(Exception):
     def __init__(self, typeError=None):
@@ -21,7 +21,9 @@ class lolzeBotApi:
         self, 
         pathData: str, 
         method: str = 'GET',
-        params: dict = {}
+        params: dict = {},
+        headersRewrite = {},
+        payload = ""
     ) -> dict:
         client = self.__clients.pop(0)
         try:
@@ -32,11 +34,15 @@ class lolzeBotApi:
                 "accept": "application/json",
                 "authorization": f"Bearer {client['token']}"
             }
+            headers.update (headersRewrite)
             url = self.__base_url_market + pathData
             if method == 'GET':
-                response = requests.get (url, params=params, headers=headers, proxies=client['proxy'])
+                response = requests.get (url, params=params, headers=headers, proxies=client['proxy'], data="")
             elif method == 'POST':
-                response = requests.post (url, params=params, headers=headers, proxies=client['proxy'])
+                if payload == "":
+                    response = requests.post (url, params=params, headers=headers, proxies=client['proxy'])
+                else:
+                    response = requests.post (url, params=params, headers=headers, proxies=client['proxy'], data=payload)
             elif method == 'DELETE':
                 response = requests.delete (url, params=params, headers=headers, proxies=client['proxy'])
             else:
@@ -44,7 +50,7 @@ class lolzeBotApi:
             if response.status_code == 200:
                 response = response.json()
             elif response.status_code == 400:
-                raise Exception(f'Сайт выдал ошибку {response.status_code}\nпри запросе к ссылке {url}\n{response.content}')
+                raise Exception(f'Сайт выдал ошибку {response.status_code}\nпри запросе к ссылке {url}\n{response.content.decode('unicode-escape')}')
             elif response.status_code == 403:
                 response = response.json()
             elif response.status_code == 429:
@@ -167,7 +173,9 @@ class lolzeBotApi:
         response = self.sendRequest(f'{item_id}')
         result = {
             'buyer': response['item']['buyer'],
-            'price': response['item']['price']
+            'price': response['item']['price'],
+            'loginData': response['item']['loginData'],
+            'category_id': response['item']['category_id']
         }
         return result
 
@@ -176,3 +184,13 @@ class lolzeBotApi:
             order_by: str ='pdate_to_down'
     ):
         return self.sendRequest(f'/user//orders?order_by={order_by}')['items']
+
+    def sellAccount (self, category_id, price, title, title_en, login, password, raw, currency='ru'):
+        payload = f"-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"login\"\r\n\r\n{login}\r\n-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"password\"\r\n\r\n{password}\r\n-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"login_password\"\r\n\r\n{raw}\r\n-----011000010111000001101001--"
+        response = self.sendRequest(
+                            pathData=f"item/fast-sell?title={title}&title_en={title_en}&price={price}&currency={currency}b&item_origin=resale&category_id={category_id}",
+                            headersRewrite={'content-type': 'multipart/form-data; boundary=---011000010111000001101001'},
+                            payload=payload,
+                            method="POST"
+                         )
+        return response
