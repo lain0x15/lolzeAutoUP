@@ -5,6 +5,7 @@ from .lolzeBotApi import lolzeBotApi
 import logging
 from pathlib import Path
 import json
+from logging.handlers import RotatingFileHandler
 
 class lolzeAutoUpErrorStop(Exception):
     def __init__(self, *args):
@@ -24,7 +25,10 @@ class lolzeAutoUP:
         self, 
         configFilePath = 'config.json'
     ) -> None:
-        logging.basicConfig(filename='msg.log', filemode='a+', format='%(asctime)s\n%(message)s')
+        
+        handler = RotatingFileHandler(filename='msg.log', mode='a+', maxBytes=50*1024*1024, 
+                                         backupCount=1, encoding=None, delay=False)
+        logging.basicConfig( handlers=[handler])
 
         self.__configFilePath = configFilePath
         self.__status = 'running'
