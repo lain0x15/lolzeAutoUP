@@ -10,6 +10,7 @@
     },
     "telegram": {
         "enabled": false,
+        "logLevel": "info",
         "token": "",
         "userIDs": []
     },
@@ -35,7 +36,7 @@
         {
             "enabled": false,
             "params": {
-                "percent": 10
+                "percent": 20
             }
         },
         "autoBuy": {

@@ -28,7 +28,7 @@ class lolzeAutoUP:
         
         handler = RotatingFileHandler(filename='msg.log', mode='a+', maxBytes=50*1024*1024, 
                                          backupCount=1, encoding=None, delay=False)
-        logging.basicConfig( handlers=[handler])
+        logging.basicConfig(level=logging.NOTSET, handlers=[handler])
 
         self.__configFilePath = configFilePath
         self.__status = 'running'
@@ -120,7 +120,7 @@ class lolzeAutoUP:
         report += f'Ссылок в автобае: {linksCount}\n'
         report += f'Куплено за 24 часа: {purchasedCount} на сумму {purchasedSum}\n'
         report += f'Продано за 24 часа: {paidCount} на сумму {paidSum}'
-        self.__log(report)
+        self.__log(report, logLevel='info')
         self.__modules['sendReports']['nextRun'] = time.time() + 3600
     
     def getAccounts(
@@ -144,11 +144,19 @@ class lolzeAutoUP:
 
     def __log (
         self, 
-        message: str
+        message: str,
+        logLevel: str = 'debug'
     ) -> None:
-        logging.warning(message)
         print (message)
-        self.sendTelegramMessage(message)
+        if logLevel == 'info':
+            logging.info(message)
+        else:
+            logging.debug(message)
+        if telegramConfig := self.__config.get('telegram'):
+            if telegramConfig['logLevel'] == logLevel:
+                self.sendTelegramMessage(message)
+            elif telegramConfig['logLevel'] == 'debug':
+                self.sendTelegramMessage(message)
 
     def getLastBumps (
         self, 
@@ -183,7 +191,7 @@ class lolzeAutoUP:
             nextBumpDate = lastBumps.pop() + marketPermissions['bumpItemPeriod'] * 60 * 60
             sleepTime = nextBumpDate - time.time()
             nextBumpDate = datetime.datetime.fromtimestamp(nextBumpDate).strftime('%d-%m-%Y %H:%M:%S')
-            self.__log (f'Осталось поднятий: {countAvailableBumps}\nДата следующей попытки поднятия: {nextBumpDate}')
+            self.__log (f'Осталось поднятий: {countAvailableBumps}\nДата следующей попытки поднятия: {nextBumpDate}', logLevel='info')
             sleepTime = sleepTime if sleepTime > 0 else 0
             self.__modules['bump']['nextRun'] = time.time() + sleepTime
             return
@@ -192,14 +200,14 @@ class lolzeAutoUP:
             if time.time() - account['refreshed_date'] > marketPermissions['bumpItemPeriod'] * 60 * 60:
                 response = self.__lolzeBotApi.bumpAccount(item_id = account["item_id"])
                 if error := response.get('errors'):
-                    self.__log(f'Не удалось поднять аккаунт https://lzt.market/{account["item_id"]}\n{error}')
+                    self.__log(f'Не удалось поднять аккаунт https://lzt.market/{account["item_id"]}\n{error}', logLevel='info')
                     continue
-                self.__log(f'Поднят аккаунт https://lzt.market/{account["item_id"]}')
+                self.__log(f'Поднят аккаунт https://lzt.market/{account["item_id"]}', logLevel='info')
                 if (countAvailableBumps := countAvailableBumps - 1) <= 0:
                     break
         else:
             nextBumpDate = datetime.datetime.fromtimestamp(3600 + time.time() ).strftime('%d-%m-%Y %H:%M:%S')
-            self.__log (f'Осталось поднятий: {countAvailableBumps}\nНет аккаунтов для поднятия. Следующая попытка поднятия {nextBumpDate}')
+            self.__log (f'Осталось поднятий: {countAvailableBumps}\nНет аккаунтов для поднятия. Следующая попытка поднятия {nextBumpDate}', logLevel='info')
             self.__modules['bump']['nextRun'] = time.time() + 3600
 
     def __sticky(self, methodSticky) -> None:
@@ -210,11 +218,11 @@ class lolzeAutoUP:
             if gen != []:
                 data = self.__lolzeBotApi.stickAccount(gen[0]["item_id"])
                 if error := data.get('errors'):
-                    self.__log(f'Не удалось закрепить https://lzt.market/{gen[0]["item_id"]}\n{error}')
+                    self.__log(f'Не удалось закрепить https://lzt.market/{gen[0]["item_id"]}\n{error}', logLevel='info')
                     return
-                self.__log(f'Закреплен https://lzt.market/{gen[0]["item_id"]}')
+                self.__log(f'Закреплен https://lzt.market/{gen[0]["item_id"]}', logLevel='info')
             else:
-                self.__log(f'Нечего закреплять')
+                self.__log(f'Нечего закреплять', logLevel='info')
                 self.__modules['stick']['nextRun'] = time.time() + 600
                 break
          
@@ -228,13 +236,13 @@ class lolzeAutoUP:
                     balance = self.__lolzeBotApi.getInfoAboutMe()['balance']
                     if balance <= limitSumOfBalace:
                         self.__log (f'Недостаточно средств для покупки аккаунта https://lzt.market/{account["item_id"]} \
-                        \nВаш баланс: {balance}\tСтоимость аккаунта: {account["price"]}\t Ваш лимит {self.limitSumOfBalace}')
+                        \nВаш баланс: {balance}\tСтоимость аккаунта: {account["price"]}\t Ваш лимит {self.limitSumOfBalace}', logLevel='info')
                         continue
                     res = self.__lolzeBotApi.buyAcc(item_id=account['item_id'], price=account['price'])
                     if error := res.get('errors'):
-                        self.__log (f'Не удалось купить аккаунт https://lzt.market/{account["item_id"]}\n{error}')
+                        self.__log (f'Не удалось купить аккаунт https://lzt.market/{account["item_id"]}\n{error}', logLevel='info')
                         continue
-                    self.__log (f'Автобай купил аккаунт https://lzt.market/{account["item_id"]}')
+                    self.__log (f'Автобай купил аккаунт https://lzt.market/{account["item_id"]}', logLevel='info')
                     self.__addEvent(
                         {
                             'type':'buy',
@@ -251,7 +259,7 @@ class lolzeAutoUP:
         for buyEvent in buyEvents:
             response = self.__lolzeBotApi.reSellAccount(item_id=buyEvent['item_id'], percent=percent)
             if error := response.get('errors'):
-                self.__log (f'Не удалось выставить на продажу https://lzt.market/{buyEvent["item_id"]}\n{error}')
+                self.__log (f'Не удалось выставить на продажу https://lzt.market/{buyEvent["item_id"]}\n{error}', logLevel='info')
             self.__modules['autoSell']['excludeItem_id'].append(buyEvent["item_id"])
 
 
