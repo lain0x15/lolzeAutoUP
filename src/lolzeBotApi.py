@@ -50,7 +50,7 @@ class lolzeBotApi:
             if response.status_code == 200:
                 response = response.json()
             elif response.status_code == 400:
-                raise Exception(f'Сайт выдал ошибку {response.status_code}\nпри запросе к ссылке {url}\n{response.content.decode('unicode-escape')}')
+                raise Exception(f'Сайт выдал ошибку {response.status_code}\nпри запросе к ссылке {url}\n{response.content.decode("unicode-escape")}')
             elif response.status_code == 403:
                 response = response.json()
             elif response.status_code == 429:
