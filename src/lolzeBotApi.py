@@ -174,7 +174,6 @@ class lolzeBotApi:
         result = {
             'buyer': response['item']['buyer'],
             'price': response['item']['price'],
-            'loginData': response['item']['loginData'],
             'category_id': response['item']['category_id']
         }
         return result
@@ -185,7 +184,21 @@ class lolzeBotApi:
     ):
         return self.sendRequest(f'/user//orders?order_by={order_by}')['items']
 
-    def sellAccount (self, category_id, price, title, title_en, login, password, raw, currency='ru'):
+    def reSellAccount (self, item_id, percent):
+        iCanSellcategory_id = [13,]
+        response = self.sendRequest(f'{item_id}')
+        if response['item']['category_id'] not in iCanSellcategory_id:
+            return {'errors':'На данный момент перепродажа данной категории не поддерживается'}
+        
+        title = 'valorant'
+        title_en = 'valorant'
+        category_id = response['item']['category_id']
+        price = round (response['item']['price'] + response['item']['price'] * percent/100)
+        login = response['item']['loginData']['login']
+        password = response['item']['loginData']['password']
+        raw = response['item']['loginData']['raw']
+        currency = 'ru'
+
         payload = f"-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"login\"\r\n\r\n{login}\r\n-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"password\"\r\n\r\n{password}\r\n-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"login_password\"\r\n\r\n{raw}\r\n-----011000010111000001101001--"
         response = self.sendRequest(
                             pathData=f"item/fast-sell?title={title}&title_en={title_en}&price={price}&currency={currency}b&item_origin=resale&category_id={category_id}",

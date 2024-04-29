@@ -246,22 +246,13 @@ class lolzeAutoUP:
                     self.__log (f'Автобай нашел аккаунт, но не смог его купить https://lzt.market/{account["item_id"]}')
     
     def __autoSell(self, percent):
-        iCanSellcategory_id = [13,]
+        self.__log('Автоматическая продажа запущена')
         buyEvents = [event for event in self.__events if event['type']=='buy' and event['item_id'] not in self.__modules['autoSell']['excludeItem_id']]
         for buyEvent in buyEvents:
-            if (account := self.__lolzeBotApi.getAccountInformation(buyEvent['item_id']))['category_id'] in iCanSellcategory_id:
-                category_id = account['category_id']
-                price = round (account['price'] + account['price'] * percent/100)
-                title = 'valorant'
-                title_en = 'valorant'
-                login = account['loginData']['login']
-                password = account['loginData']['password']
-                raw = account['loginData']['raw']
-                response = self.__lolzeBotApi.sellAccount(category_id=category_id, price=price, title=title, login=login, password=password, raw=raw, title_en=title_en)
-                if error := response.get('errors'):
-                    self.__log (f'Не удалось выставить на продажу https://lzt.market/{buyEvent["item_id"]}\n{error}')
-                    self.__modules['autoSell']['excludeItem_id'].append(buyEvent["item_id"])
-                    continue
+            response = self.__lolzeBotApi.reSellAccount(item_id=buyEvent['item_id'], percent=percent)
+            if error := response.get('errors'):
+                self.__log (f'Не удалось выставить на продажу https://lzt.market/{buyEvent["item_id"]}\n{error}')
+                self.__modules['autoSell']['excludeItem_id'].append(buyEvent["item_id"])
 
 
     def run (self):
