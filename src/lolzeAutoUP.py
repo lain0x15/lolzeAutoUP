@@ -267,7 +267,10 @@ class lolzeAutoUP:
         while self.__status == 'running':
             try:
                 if self.__loadConfig()['status'] == 'changed':
-                    self.__lolzeBotApi = lolzeBotApi([x.copy() for x in self.__config['lolze']['clients']])
+                    clients = [x.copy() for x in self.__config['lolze']['clients']]
+                    clients = [client for client in  clients if client.pop('enabled', True)]
+                    pprint.pprint(clients)
+                    self.__lolzeBotApi = lolzeBotApi(clients)
                     self.telegramApi = TelegramAPI(self.__config.get('telegram')['token']) if self.__config.get('telegram')['enabled'] else ''
                 for module in self.__config['modules']:
                     if self.__config['modules'][module]['enabled'] == True and self.__modules[module]['nextRun'] <= time.time():

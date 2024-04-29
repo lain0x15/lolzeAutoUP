@@ -2,25 +2,26 @@
     "lolze": {
         "clients": [
             {
+                "enabled": true,
                 "token":"",
                 "proxy": {}
             }
         ]
     },
     "telegram": {
-        "enabled": true,
+        "enabled": false,
         "token": "",
         "userIDs": []
     },
     "modules": {
         "bump": {
-            "enabled": true,
+            "enabled": false,
             "params":{
                 "methodBump": "price_to_up"
             }
         },
         "stick": {
-            "enabled": true,
+            "enabled": false,
             "params":{
                 "methodSticky": "price_to_up"
             } 
@@ -32,13 +33,13 @@
         },
         "autoSell":
         {
-            "enabled": true,
+            "enabled": false,
             "params": {
                 "percent": 10
             }
         },
         "autoBuy": {
-            "enabled": true,
+            "enabled": false,
             "params":{
                 "limitSumOfBalace": 0,
                 "marketURLs": [
