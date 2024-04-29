@@ -236,7 +236,7 @@ class lolzeAutoUP:
                     balance = self.__lolzeBotApi.getInfoAboutMe()['balance']
                     if balance - account['price'] < limitSumOfBalace:
                         self.__log (f'Недостаточно средств для покупки аккаунта https://lzt.market/{account["item_id"]} \
-                        \nВаш баланс: {balance}\tСтоимость аккаунта: {account["price"]}\t Ваш лимит {self.limitSumOfBalace}', logLevel='info')
+                        \nВаш баланс: {balance}\tСтоимость аккаунта: {account["price"]}\t Ваш лимит {limitSumOfBalace}', logLevel='info')
                         continue
                     res = self.__lolzeBotApi.buyAcc(item_id=account['item_id'], price=account['price'])
                     if error := res.get('errors'):
