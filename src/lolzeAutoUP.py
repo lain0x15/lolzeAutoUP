@@ -252,7 +252,7 @@ class lolzeAutoUP:
             response = self.__lolzeBotApi.reSellAccount(item_id=buyEvent['item_id'], percent=percent)
             if error := response.get('errors'):
                 self.__log (f'Не удалось выставить на продажу https://lzt.market/{buyEvent["item_id"]}\n{error}')
-                self.__modules['autoSell']['excludeItem_id'].append(buyEvent["item_id"])
+            self.__modules['autoSell']['excludeItem_id'].append(buyEvent["item_id"])
 
 
     def run (self):
