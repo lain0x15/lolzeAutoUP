@@ -238,7 +238,7 @@ class lolzeAutoUP:
                     self.__addEvent(
                         {
                             'type':'buy',
-                            'item_id': 'item_id'
+                            'item_id': account["item_id"]
                         }
                     )
                     break
@@ -267,6 +267,8 @@ class lolzeAutoUP:
                     if self.__config['modules'][module]['enabled'] == True and self.__modules[module]['nextRun'] <= time.time():
                         params = self.__config['modules'][module]['params']
                         self.__modules[module]['run'](**params)
+            except Exception as err:
+                self.__log(err)
             finally:
                 pass
 

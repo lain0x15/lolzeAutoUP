@@ -44,10 +44,10 @@
                 "limitSumOfBalace": 0,
                 "marketURLs": [
                     {
-                        "url": "https://lzt.market/mihoyo/?pmax=5" 
+                        "url": "https://lzt.market/mihoyo/?pmax=5"
                     },
                     {
-                        "url": "https://lzt.market/mihoyo/?pmax=6" 
+                        "url": "https://lzt.market/mihoyo/?pmax=6"
                     }
                 ]
             }
