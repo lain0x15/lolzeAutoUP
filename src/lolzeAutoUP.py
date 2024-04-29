@@ -230,7 +230,7 @@ class lolzeAutoUP:
         self.__log('Автоматическая покупка запущена')
         for url in marketURLs:
             accounts = self.__lolzeBotApi.searchAcc(url=url['url'])
-            self.__log(f'Аккаунтов найдено {accounts["totalItems"]} по ссылке {accounts["searchUrl"]}')
+            self.__log(f'Аккаунтов найдено {accounts["totalItems"]} по ссылке {url["url"]}')
             for account in accounts['items']:
                 if account['canBuyItem']:
                     balance = self.__lolzeBotApi.getInfoAboutMe()['balance']
