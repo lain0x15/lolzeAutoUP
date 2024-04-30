@@ -59,9 +59,12 @@ class lolzeAutoUP:
         }
 
     def __addEvent (self, event):
-        if len(self.__events) > 100:
+        if len(self.__events) > 200:
             self.__events.pop(0)
         self.__events.append (event)
+    
+    def __getEnevnts (self):
+        return self.__events
 
     def __loadConfig(self):
         self.__log (f'Проверяю существование файла конфигурации: {self.__configFilePath}')
@@ -246,7 +249,8 @@ class lolzeAutoUP:
                     self.__addEvent(
                         {
                             'type':'buy',
-                            'item_id': account["item_id"]
+                            'item_id': account["item_id"],
+                            'autoSellOptions': url.get('autoSellOptions', {})
                         }
                     )
                     break

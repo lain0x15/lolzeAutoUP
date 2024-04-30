@@ -45,10 +45,34 @@
                 "limitSumOfBalace": 0,
                 "marketURLs": [
                     {
-                        "url": "https://lzt.market/mihoyo/?pmax=5"
+                        "url": "https://lzt.market/mihoyo/?pmax=5",
+                        "autoSellOptions": {
+                            "enabled": true,
+                            "percent": 10,
+                            "title": "valorant",
+                            "title_en": "valorant",
+                            "descriptionTempleteFile": "valorant.template",
+                        },
+                        "autoScaleDown": {
+                            "enabled": false,
+                            "percent": 1,
+                            "periodInSecond": 3600
+                        }
                     },
                     {
-                        "url": "https://lzt.market/mihoyo/?pmax=6"
+                        "url": "https://lzt.market/mihoyo/?pmax=6",
+                        "autoSellOptions": {
+                            "enabled": true,
+                            "percent": 10,
+                            "title": "valorant",
+                            "title_en": "valorant",
+                            "descriptionTempleteFile": "valorant.template",
+                        },
+                        "autoScaleDown": {
+                            "enabled": false,
+                            "percent": 1,
+                            "periodInSecond": 3600
+                        }
                     }
                 ]
             }
