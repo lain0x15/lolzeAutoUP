@@ -250,7 +250,7 @@ class lolzeAutoUP:
                         {
                             'type':'buy',
                             'item_id': account["item_id"],
-                            'autoSellOptions': url.get('autoSellOptions', {})
+                            'marketURL': url
                         }
                     )
                     break
