@@ -199,7 +199,17 @@ class lolzeBotApi:
         raw = response['item']['loginData']['raw']
         currency = 'ru'
 
-        payload = f"-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"login\"\r\n\r\n{login}\r\n-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"password\"\r\n\r\n{password}\r\n-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"login_password\"\r\n\r\n{raw}\r\n-----011000010111000001101001--"
+        has_email_login_data = 'false'
+        email_login_data = ''
+        email_type = 'autoreg'
+        
+        if emailLoginData := response['item'].get('emailLoginData'):
+            has_email_login_data = 'true'
+            email_login_data = emailLoginData['raw']
+            email_type = response['item']['email_type']
+        
+        payload = f"-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"has_email_login_data\"\r\n\r\n{has_email_login_data}\r\n-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"email_login_data\"\r\n\r\n{email_login_data}\r\n-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"email_type\"\r\n\r\n{email_type}\r\n-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"login\"\r\n\r\n{login}\r\n-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"password\"\r\n\r\n{password}\r\n-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"login_password\"\r\n\r\n{raw}\r\n-----011000010111000001101001--"
+
         response = self.sendRequest(
                             pathData=f"item/fast-sell?title={title}&title_en={title_en}&price={price}&currency={currency}b&item_origin=resale&category_id={category_id}",
                             headersRewrite={'content-type': 'multipart/form-data; boundary=---011000010111000001101001'},
