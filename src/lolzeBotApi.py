@@ -197,7 +197,7 @@ class lolzeBotApi:
         login = response['item']['loginData']['login']
         password = response['item']['loginData']['password']
         raw = response['item']['loginData']['raw']
-        currency = 'ru'
+        currency = response['item']['price_currency']
 
         has_email_login_data = 'false'
         email_login_data = ''
