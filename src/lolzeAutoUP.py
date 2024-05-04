@@ -269,7 +269,9 @@ class lolzeAutoUP:
     
     def __autoSell(self, percent):
         self.__log('Автоматическая продажа запущена')
-        buyEvents = [event for event in self.__getEnevnts() if event['type']=='buy' and event['item_id'] not in self.__modules['autoSell']['excludeItem_id']]
+        events = self.__getEnevnts()
+        reSellEventsItemID = [event['item_id'] for event in events if event['type']=='reSell']
+        buyEvents = [event for event in events if event['type']=='buy' and event['item_id'] not in reSellEventsItemID]
         title = ''
         title_en = ''
         for buyEvent in buyEvents:
@@ -288,9 +290,23 @@ class lolzeAutoUP:
                     continue
             response = self.__lolzeBotApi.reSellAccount(item_id=buyEvent['item_id'], percent=percent, title=title, title_en=title_en)
             if error := response.get('errors'):
+                self.__addEvent(
+                    {
+                        'type':'reSell',
+                        'status': 'error',
+                        'item_id': buyEvent["item_id"]
+                    }
+                )
                 self.__log (f'Не удалось выставить на продажу https://lzt.market/{buyEvent["item_id"]}\n{error}', logLevel='info')
+                return
             self.__log (f'Выставлен на продажу https://lzt.market/{buyEvent["item_id"]}', logLevel='info')
-            self.__modules['autoSell']['excludeItem_id'].append(buyEvent["item_id"])
+            self.__addEvent(
+                {
+                    'type':'reSell',
+                    'status': 'success',
+                    'item_id': buyEvent["item_id"]
+                }
+            )
 
 
     def run (self):
