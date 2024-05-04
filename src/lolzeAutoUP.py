@@ -322,6 +322,5 @@ class lolzeAutoUP:
                         self.__modules[module]['run'](**params)
             except Exception as err:
                 self.__log(err)
-                raise err
             finally:
                 pass
