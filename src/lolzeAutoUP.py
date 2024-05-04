@@ -57,7 +57,6 @@ class lolzeAutoUP:
             },
             "autoSell": {
                 "run": self.__autoSell,
-                "excludeItem_id": [],
                 "nextRun": 0
             }
         }
