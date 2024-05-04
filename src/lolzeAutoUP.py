@@ -66,8 +66,14 @@ class lolzeAutoUP:
         if len(self.__events) > 200:
             self.__events.pop(0)
         self.__events.append (event)
+        with open('events.json', 'w') as eventsFile: 
+            json.dump(self.__events, eventsFile) 
     
     def __getEnevnts (self):
+        eventsFilePath = Path('events.json')
+        if eventsFilePath.is_file():
+            with open('events.json', 'r') as eventsFile:
+                self.__events = json.load(eventsFile)
         return self.__events
 
     def __loadConfig(self):
@@ -263,19 +269,24 @@ class lolzeAutoUP:
     
     def __autoSell(self, percent):
         self.__log('Автоматическая продажа запущена')
-        buyEvents = [event for event in self.__events if event['type']=='buy' and event['item_id'] not in self.__modules['autoSell']['excludeItem_id']]
+        buyEvents = [event for event in self.__getEnevnts() if event['type']=='buy' and event['item_id'] not in self.__modules['autoSell']['excludeItem_id']]
+        title = ''
+        title_en = ''
         for buyEvent in buyEvents:
-            if buyEvent.get('autoSellOptions', {}) != {}:
-                if buyEvent['autoSellOptions']['enabled']:
-                    percent = buyEvent['autoSellOptions'].get('percent', percent)
-                    if buyEvent['autoSellOptions'].get('template'):
-                        with open(self.__templatesFolderPath / template) as templateFile:
+            if buyEvent['marketURL'].get('autoSellOptions', {}) != {}:
+                if buyEvent['marketURL']['autoSellOptions']['enabled']:
+                    percent = buyEvent['marketURL']['autoSellOptions'].get('percent', percent)
+                    if buyEvent['marketURL']['autoSellOptions'].get('template'):
+                        path = self.__templatesFolderPath / buyEvent['marketURL']['autoSellOptions']['template']
+                        with open(path) as templateFile:
                             templateData = Template(templateFile.read())
-                        item = self.sendRequest(f"{event['item_id']}")['item']
-                        jsonTemplate = json.load(templateData.render(item=item))
+                        item = self.__lolzeBotApi.sendRequest(f'{buyEvent["item_id"]}')['item']
+                        jsonTemplate = json.loads(templateData.render(item=item).encode('utf-8'))
+                        title = jsonTemplate.get('title')
+                        title_en = jsonTemplate.get('title_en')
                 else:
                     continue
-            response = self.__lolzeBotApi.reSellAccount(item_id=buyEvent['item_id'], percent=percent)
+            response = self.__lolzeBotApi.reSellAccount(item_id=buyEvent['item_id'], percent=percent, title=title, title_en=title_en)
             if error := response.get('errors'):
                 self.__log (f'Не удалось выставить на продажу https://lzt.market/{buyEvent["item_id"]}\n{error}', logLevel='info')
             self.__log (f'Выставлен на продажу https://lzt.market/{buyEvent["item_id"]}', logLevel='info')
