@@ -162,6 +162,8 @@ class lolzeAutoUP:
         print (message)
         if logLevel == 'info':
             logging.info(message)
+        elif logLevel == 'error':
+            logging.error(message)
         else:
             logging.debug(message)
         if telegramConfig := self.__config.get('telegram'):
@@ -321,6 +323,6 @@ class lolzeAutoUP:
                         params = self.__config['modules'][module]['params']
                         self.__modules[module]['run'](**params)
             except Exception as err:
-                self.__log(err)
+                self.__log(err, type='error')
             finally:
                 pass
