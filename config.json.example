@@ -49,9 +49,7 @@
                         "autoSellOptions": {
                             "enabled": true,
                             "percent": 10,
-                            "title": "valorant",
-                            "title_en": "valorant",
-                            "descriptionTempleteFile": "valorant.template",
+                            "template": "valorant.template"
                         },
                         "autoScaleDown": {
                             "enabled": false,
@@ -64,9 +62,7 @@
                         "autoSellOptions": {
                             "enabled": true,
                             "percent": 10,
-                            "title": "valorant",
-                            "title_en": "valorant",
-                            "descriptionTempleteFile": "valorant.template",
+                            "template": "valorant.template"
                         },
                         "autoScaleDown": {
                             "enabled": false,

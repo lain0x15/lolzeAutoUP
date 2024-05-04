@@ -37,14 +37,14 @@ class lolzeBotApi:
             headers.update (headersRewrite)
             url = self.__base_url_market + pathData
             if method == 'GET':
-                response = requests.get (url, params=params, headers=headers, proxies=client['proxy'], data="")
+                response = requests.get (url, params=params, headers=headers, proxies=client.get('proxy'), data="")
             elif method == 'POST':
                 if payload == "":
-                    response = requests.post (url, params=params, headers=headers, proxies=client['proxy'])
+                    response = requests.post (url, params=params, headers=headers, proxies=client.get('proxy'))
                 else:
-                    response = requests.post (url, params=params, headers=headers, proxies=client['proxy'], data=payload)
+                    response = requests.post (url, params=params, headers=headers, proxies=client.get('proxy'), data=payload)
             elif method == 'DELETE':
-                response = requests.delete (url, params=params, headers=headers, proxies=client['proxy'])
+                response = requests.delete (url, params=params, headers=headers, proxies=client.get('proxy'))
             else:
                 raise Exception (f'Неправильный метод {method}, ожидается GET, POST, DELETE')
             if response.status_code == 200:

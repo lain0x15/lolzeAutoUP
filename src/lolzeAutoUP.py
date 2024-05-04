@@ -6,6 +6,8 @@ import logging
 from pathlib import Path
 import json
 from logging.handlers import RotatingFileHandler
+from jinja2 import Template
+
 
 class lolzeAutoUpErrorStop(Exception):
     def __init__(self, *args):
@@ -23,7 +25,8 @@ class lolzeAutoUpErrorStop(Exception):
 class lolzeAutoUP:
     def __init__(
         self, 
-        configFilePath = 'config.json'
+        configFilePath = 'config.json',
+        templatesFolderPath = 'files/templates'
     ) -> None:
         
         handler = RotatingFileHandler(filename='msg.log', mode='a+', maxBytes=50*1024*1024, 
@@ -31,6 +34,7 @@ class lolzeAutoUP:
         logging.basicConfig(level=logging.NOTSET, handlers=[handler])
 
         self.__configFilePath = configFilePath
+        self.__templatesFolderPath = Path(templatesFolderPath)
         self.__status = 'running'
         self.__events = []
         self.__config = {}
@@ -261,9 +265,20 @@ class lolzeAutoUP:
         self.__log('Автоматическая продажа запущена')
         buyEvents = [event for event in self.__events if event['type']=='buy' and event['item_id'] not in self.__modules['autoSell']['excludeItem_id']]
         for buyEvent in buyEvents:
+            if buyEvent.get('autoSellOptions', {}) != {}:
+                if buyEvent['autoSellOptions']['enabled']:
+                    percent = buyEvent['autoSellOptions'].get('percent', percent)
+                    if buyEvent['autoSellOptions'].get('template'):
+                        with open(self.__templatesFolderPath / template) as templateFile:
+                            templateData = Template(templateFile.read())
+                        item = self.sendRequest(f"{event['item_id']}")['item']
+                        jsonTemplate = json.load(templateData.render(item=item))
+                else:
+                    continue
             response = self.__lolzeBotApi.reSellAccount(item_id=buyEvent['item_id'], percent=percent)
             if error := response.get('errors'):
                 self.__log (f'Не удалось выставить на продажу https://lzt.market/{buyEvent["item_id"]}\n{error}', logLevel='info')
+            self.__log (f'Выставлен на продажу https://lzt.market/{buyEvent["item_id"]}', logLevel='info')
             self.__modules['autoSell']['excludeItem_id'].append(buyEvent["item_id"])
 
 
@@ -281,8 +296,6 @@ class lolzeAutoUP:
                         self.__modules[module]['run'](**params)
             except Exception as err:
                 self.__log(err)
+                raise err
             finally:
                 pass
-
-
-
