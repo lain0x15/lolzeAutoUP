@@ -167,9 +167,7 @@ class lolzeAutoUP:
         else:
             logging.debug(message)
         if telegramConfig := self.__config.get('telegram'):
-            if telegramConfig['logLevel'] == logLevel:
-                self.sendTelegramMessage(message)
-            elif telegramConfig['logLevel'] == 'debug':
+            if logLevel in telegramConfig['logLevel']:
                 self.sendTelegramMessage(message)
 
     def getLastBumps (

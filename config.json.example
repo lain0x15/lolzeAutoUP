@@ -10,7 +10,7 @@
     },
     "telegram": {
         "enabled": false,
-        "logLevel": "info",
+        "logLevel": ["info", "error"],
         "token": "",
         "userIDs": []
     },
