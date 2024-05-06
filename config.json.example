@@ -10,7 +10,7 @@
     },
     "telegram": {
         "enabled": false,
-        "logLevel": "info",
+        "logLevel": ["info", "error"],
         "token": "",
         "userIDs": []
     },
@@ -45,10 +45,20 @@
                 "limitSumOfBalace": 0,
                 "marketURLs": [
                     {
-                        "url": "https://lzt.market/mihoyo/?pmax=5"
+                        "url": "https://lzt.market/mihoyo/?pmax=5",
+                        "autoSellOptions": {
+                            "enabled": true,
+                            "percent": 10,
+                            "template": "valorant.template"
+                        }
                     },
                     {
-                        "url": "https://lzt.market/mihoyo/?pmax=6"
+                        "url": "https://lzt.market/mihoyo/?pmax=6",
+                        "autoSellOptions": {
+                            "enabled": true,
+                            "percent": 10,
+                            "template": "valorant.template"
+                        }
                     }
                 ]
             }

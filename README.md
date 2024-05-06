@@ -15,7 +15,7 @@ lolzeAutoUp - бот для маркета lolze имеющий функцион
 Настройка:
 
 1) Установите python с официального сайта или из microsoft store
-2) Выполните команду python -m pip install requests
+2) Выполните команду python -m pip install requests Jinja2
 3) Удалите .example у файла config.json.example
 4) Заполните необходимые параметры (ниже расписано)
 5) Откройте cmd в папке с ботом и выполните команду python main.py
@@ -36,7 +36,7 @@ lolzeAutoUp - бот для маркета lolze имеющий функцион
     },
     "telegram": {
         "enabled": false, - false не отправлять данные в телеграм, true отправлять
-        "logLevel": "info", - уровень логирования который будет отправляться в телеграм. Доступно "info", "debug"
+        "logLevel": ["info", "error"] - уровени логирования который будет отправляться в телеграм. Доступно "info", "debug"
         "token": "", - токен от бота телеграм
         "userIDs": [] - ид пользователей которым будут отправляться логи. пример [1231231231, 33333333333]
     },
@@ -71,7 +71,12 @@ lolzeAutoUp - бот для маркета lolze имеющий функцион
                 "limitSumOfBalace": 0, - лимит. Если ваш баланс ниже, покупать не будет
                 "marketURLs": [ - ссылки для покупки
                     {
-                        "url": "https://lzt.market/mihoyo/?pmax=5"
+                        "url": "https://lzt.market/mihoyo/?pmax=5", - URI с фильтрами для поиска аккаунтов
+                        "autoSellOptions": { - опционально
+                            "enabled": true, - true/false включить/выключить автопродажу для данной ссылки (при выключенном модуле автопродажи ни на что не влияет)
+                            "percent": 10, - процент за каторый будет продажа (по умолчанию берется из модуля autoSell)
+                            "template": "valorant.template" - файл шаблона для формирования title/title_en
+                        }
                     },
                     {
                         "url": "https://lzt.market/mihoyo/?pmax=6"

@@ -37,14 +37,14 @@ class lolzeBotApi:
             headers.update (headersRewrite)
             url = self.__base_url_market + pathData
             if method == 'GET':
-                response = requests.get (url, params=params, headers=headers, proxies=client['proxy'], data="")
+                response = requests.get (url, params=params, headers=headers, proxies=client.get('proxy'), data="")
             elif method == 'POST':
                 if payload == "":
-                    response = requests.post (url, params=params, headers=headers, proxies=client['proxy'])
+                    response = requests.post (url, params=params, headers=headers, proxies=client.get('proxy'))
                 else:
-                    response = requests.post (url, params=params, headers=headers, proxies=client['proxy'], data=payload)
+                    response = requests.post (url, params=params, headers=headers, proxies=client.get('proxy'), data=payload)
             elif method == 'DELETE':
-                response = requests.delete (url, params=params, headers=headers, proxies=client['proxy'])
+                response = requests.delete (url, params=params, headers=headers, proxies=client.get('proxy'))
             else:
                 raise Exception (f'Неправильный метод {method}, ожидается GET, POST, DELETE')
             if response.status_code == 200:
@@ -184,20 +184,20 @@ class lolzeBotApi:
     ):
         return self.sendRequest(f'/user//orders?order_by={order_by}')['items']
 
-    def reSellAccount (self, item_id, percent):
+    def reSellAccount (self, item_id, percent, title='', title_en=''):
         iCanSellcategory_id = [13,]
         response = self.sendRequest(f'{item_id}')
         if response['item']['category_id'] not in iCanSellcategory_id:
             return {'errors':'На данный момент перепродажа данной категории не поддерживается'}
         
-        title = 'valorant'
-        title_en = 'valorant'
+        title = title if title else response['item']['title']
+        title_en = title_en if title_en else response['item']['title_en']
         category_id = response['item']['category_id']
         price = round (response['item']['price'] + response['item']['price'] * percent/100)
         login = response['item']['loginData']['login']
         password = response['item']['loginData']['password']
         raw = response['item']['loginData']['raw']
-        currency = 'ru'
+        currency = response['item']['price_currency']
 
         has_email_login_data = 'false'
         email_login_data = ''
@@ -209,7 +209,6 @@ class lolzeBotApi:
             email_type = response['item']['email_type']
         
         payload = f"-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"has_email_login_data\"\r\n\r\n{has_email_login_data}\r\n-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"email_login_data\"\r\n\r\n{email_login_data}\r\n-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"email_type\"\r\n\r\n{email_type}\r\n-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"login\"\r\n\r\n{login}\r\n-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"password\"\r\n\r\n{password}\r\n-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"login_password\"\r\n\r\n{raw}\r\n-----011000010111000001101001--"
-
         response = self.sendRequest(
                             pathData=f"item/fast-sell?title={title}&title_en={title_en}&price={price}&currency={currency}b&item_origin=resale&category_id={category_id}",
                             headersRewrite={'content-type': 'multipart/form-data; boundary=---011000010111000001101001'},

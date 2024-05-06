@@ -6,6 +6,8 @@ import logging
 from pathlib import Path
 import json
 from logging.handlers import RotatingFileHandler
+from jinja2 import Template
+
 
 class lolzeAutoUpErrorStop(Exception):
     def __init__(self, *args):
@@ -23,7 +25,8 @@ class lolzeAutoUpErrorStop(Exception):
 class lolzeAutoUP:
     def __init__(
         self, 
-        configFilePath = 'config.json'
+        configFilePath = 'config.json',
+        templatesFolderPath = 'files/templates'
     ) -> None:
         
         handler = RotatingFileHandler(filename='msg.log', mode='a+', maxBytes=50*1024*1024, 
@@ -31,6 +34,7 @@ class lolzeAutoUP:
         logging.basicConfig(level=logging.NOTSET, handlers=[handler])
 
         self.__configFilePath = configFilePath
+        self.__templatesFolderPath = Path(templatesFolderPath)
         self.__status = 'running'
         self.__events = []
         self.__config = {}
@@ -53,15 +57,23 @@ class lolzeAutoUP:
             },
             "autoSell": {
                 "run": self.__autoSell,
-                "excludeItem_id": [],
                 "nextRun": 0
             }
         }
 
     def __addEvent (self, event):
-        if len(self.__events) > 100:
+        if len(self.__events) > 200:
             self.__events.pop(0)
         self.__events.append (event)
+        with open('events.json', 'w') as eventsFile: 
+            json.dump(self.__events, eventsFile) 
+    
+    def __getEnevnts (self):
+        eventsFilePath = Path('events.json')
+        if eventsFilePath.is_file():
+            with open('events.json', 'r') as eventsFile:
+                self.__events = json.load(eventsFile)
+        return self.__events
 
     def __loadConfig(self):
         self.__log (f'Проверяю существование файла конфигурации: {self.__configFilePath}')
@@ -150,12 +162,12 @@ class lolzeAutoUP:
         print (message)
         if logLevel == 'info':
             logging.info(message)
+        elif logLevel == 'error':
+            logging.error(message)
         else:
             logging.debug(message)
         if telegramConfig := self.__config.get('telegram'):
-            if telegramConfig['logLevel'] == logLevel:
-                self.sendTelegramMessage(message)
-            elif telegramConfig['logLevel'] == 'debug':
+            if logLevel in telegramConfig['logLevel']:
                 self.sendTelegramMessage(message)
 
     def getLastBumps (
@@ -246,7 +258,8 @@ class lolzeAutoUP:
                     self.__addEvent(
                         {
                             'type':'buy',
-                            'item_id': account["item_id"]
+                            'item_id': account["item_id"],
+                            'marketURL': url
                         }
                     )
                     break
@@ -255,12 +268,44 @@ class lolzeAutoUP:
     
     def __autoSell(self, percent):
         self.__log('Автоматическая продажа запущена')
-        buyEvents = [event for event in self.__events if event['type']=='buy' and event['item_id'] not in self.__modules['autoSell']['excludeItem_id']]
+        events = self.__getEnevnts()
+        reSellEventsItemID = [event['item_id'] for event in events if event['type']=='reSell']
+        buyEvents = [event for event in events if event['type']=='buy' and event['item_id'] not in reSellEventsItemID]
+        title = ''
+        title_en = ''
         for buyEvent in buyEvents:
-            response = self.__lolzeBotApi.reSellAccount(item_id=buyEvent['item_id'], percent=percent)
+            if buyEvent['marketURL'].get('autoSellOptions', {}) != {}:
+                if buyEvent['marketURL']['autoSellOptions']['enabled']:
+                    percent = buyEvent['marketURL']['autoSellOptions'].get('percent', percent)
+                    if buyEvent['marketURL']['autoSellOptions'].get('template'):
+                        path = self.__templatesFolderPath / buyEvent['marketURL']['autoSellOptions']['template']
+                        with open(path) as templateFile:
+                            templateData = Template(templateFile.read())
+                        item = self.__lolzeBotApi.sendRequest(f'{buyEvent["item_id"]}')['item']
+                        jsonTemplate = json.loads(templateData.render(item=item).encode('utf-8'))
+                        title = jsonTemplate.get('title')
+                        title_en = jsonTemplate.get('title_en')
+                else:
+                    continue
+            response = self.__lolzeBotApi.reSellAccount(item_id=buyEvent['item_id'], percent=percent, title=title, title_en=title_en)
             if error := response.get('errors'):
+                self.__addEvent(
+                    {
+                        'type':'reSell',
+                        'status': 'error',
+                        'item_id': buyEvent["item_id"]
+                    }
+                )
                 self.__log (f'Не удалось выставить на продажу https://lzt.market/{buyEvent["item_id"]}\n{error}', logLevel='info')
-            self.__modules['autoSell']['excludeItem_id'].append(buyEvent["item_id"])
+                return
+            self.__log (f'Выставлен на продажу https://lzt.market/{buyEvent["item_id"]}', logLevel='info')
+            self.__addEvent(
+                {
+                    'type':'reSell',
+                    'status': 'success',
+                    'item_id': buyEvent["item_id"]
+                }
+            )
 
 
     def run (self):
@@ -276,9 +321,6 @@ class lolzeAutoUP:
                         params = self.__config['modules'][module]['params']
                         self.__modules[module]['run'](**params)
             except Exception as err:
-                self.__log(err)
+                self.__log(f'Ошибка: {err}. Перезапускаюсь.', logLevel='error')
             finally:
                 pass
-
-
-
