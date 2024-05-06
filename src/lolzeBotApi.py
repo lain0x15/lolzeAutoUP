@@ -198,7 +198,6 @@ class lolzeBotApi:
         password = response['item']['loginData']['password']
         raw = response['item']['loginData']['raw']
         currency = response['item']['price_currency']
-
         has_email_login_data = 'false'
         email_login_data = ''
         email_type = 'autoreg'
