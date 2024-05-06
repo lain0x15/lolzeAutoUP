@@ -177,7 +177,7 @@ class lolzeAutoUP:
         lastBumps = [0 for _ in range(count)]
         accounts = self.__lolzeBotApi.getOwnedAccounts(order_by='pdate_to_down')
         for accountShowType in accounts:
-            for account in accounts[accountShowType][:count]:
+            for account in accounts[accountShowType]:
                 if account['published_date'] != account['refreshed_date']:
                     lastBumps.append(account['refreshed_date'])
                     lastBumps.sort(reverse=True)
