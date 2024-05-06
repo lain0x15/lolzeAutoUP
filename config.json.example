@@ -50,11 +50,6 @@
                             "enabled": true,
                             "percent": 10,
                             "template": "valorant.template"
-                        },
-                        "autoScaleDown": {
-                            "enabled": false,
-                            "percent": 1,
-                            "periodInSecond": 3600
                         }
                     },
                     {
@@ -63,11 +58,6 @@
                             "enabled": true,
                             "percent": 10,
                             "template": "valorant.template"
-                        },
-                        "autoScaleDown": {
-                            "enabled": false,
-                            "percent": 1,
-                            "periodInSecond": 3600
                         }
                     }
                 ]
