@@ -184,7 +184,7 @@ class lolzeBotApi:
     ):
         return self.sendRequest(f'/user//orders?order_by={order_by}')['items']
 
-    def reSellAccount (self, item_id, percent, price=-1, title='', title_en=''):
+    def reSellAccount (self, item_id, percent=0, price=-1, title='', title_en=''):
         iCanSellcategory_id = [13,]
         response = self.sendRequest(f'{item_id}')
         if response['item']['category_id'] not in iCanSellcategory_id:
