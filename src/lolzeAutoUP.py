@@ -26,7 +26,8 @@ class lolzeAutoUP:
     def __init__(
         self, 
         configFilePath = 'config.json',
-        templatesFolderPath = 'files/templates'
+        templatesFolderPath = 'files/templates',
+        tmpFolderPath = 'files/tmp'
     ) -> None:
         
         handler = RotatingFileHandler(filename='msg.log', mode='a+', maxBytes=50*1024*1024, 
@@ -35,6 +36,7 @@ class lolzeAutoUP:
 
         self.__configFilePath = configFilePath
         self.__templatesFolderPath = Path(templatesFolderPath)
+        self.__tmpFolderPath = Path(tmpFolderPath)
         self.__status = 'running'
         self.__events = []
         self.__config = {}
@@ -65,13 +67,14 @@ class lolzeAutoUP:
         if len(self.__events) > 200:
             self.__events.pop(0)
         self.__events.append (event)
-        with open('events.json', 'w') as eventsFile: 
+        eventsFilePath = self.__tmpFolderPath / 'events.json'
+        with open(eventsFilePath, 'w') as eventsFile: 
             json.dump(self.__events, eventsFile) 
     
     def __getEnevnts (self):
-        eventsFilePath = Path('events.json')
+        eventsFilePath = self.__tmpFolderPath / 'events.json'
         if eventsFilePath.is_file():
-            with open('events.json', 'r') as eventsFile:
+            with open(eventsFilePath, 'r') as eventsFile:
                 self.__events = json.load(eventsFile)
         return self.__events
 
