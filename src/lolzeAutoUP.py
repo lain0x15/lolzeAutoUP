@@ -273,6 +273,7 @@ class lolzeAutoUP:
         buyEvents = [event for event in events if event['type']=='buy' and event['item_id'] not in reSellEventsItemID]
         title = ''
         title_en = ''
+        price = -1
         for buyEvent in buyEvents:
             if buyEvent['marketURL'].get('autoSellOptions', {}) != {}:
                 if buyEvent['marketURL']['autoSellOptions']['enabled']:
@@ -285,9 +286,10 @@ class lolzeAutoUP:
                         jsonTemplate = json.loads(templateData.render(item=item).encode('utf-8'))
                         title = jsonTemplate.get('title')
                         title_en = jsonTemplate.get('title_en')
+                        price = jsonTemplate.get('price', -1)
                 else:
                     continue
-            response = self.__lolzeBotApi.reSellAccount(item_id=buyEvent['item_id'], percent=percent, title=title, title_en=title_en)
+            response = self.__lolzeBotApi.reSellAccount(item_id=buyEvent['item_id'], percent=percent, price=price, title=title, title_en=title_en)
             if error := response.get('errors'):
                 self.__addEvent(
                     {

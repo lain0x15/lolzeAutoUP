@@ -1,4 +1,5 @@
 ﻿{
 	"title": "Регион: {{ item['valorant_region'] }} | ~ {{ item['valorant_inventory_value'] }} VP стоимость инвентаря",
-	"title_en": "Region: {{ item['valorant_region'] }} | ~ {{ item['valorant_inventory_value'] }} VP cost of inventory"
+	"title_en": "Region: {{ item['valorant_region'] }} | ~ {{ item['valorant_inventory_value'] }} VP cost of inventory",
+	"price": 50
 }
