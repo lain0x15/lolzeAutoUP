@@ -1,4 +1,4 @@
 ﻿{
-	"title": "Регион: {{ item['valorant_region'] }} | ~ {{ item['valorant_inventory_value'] }} VP стоимость инвентаря",
-	"title_en": "Region: {{ item['valorant_region'] }} | ~ {{ item['valorant_inventory_value'] }} VP cost of inventory"
+	"title": "Регион: {{ item['valorant_region'] }}{% if item['valorant_inventory_value'] != 0 %} | ~ {{ item['valorant_inventory_value'] }} VP стоимость инвентаря{% endif %}{% if item['valorantInventory']['WeaponSkins'][0] %} | {{ additionalVars['ru'][item['valorantInventory']['WeaponSkins'][0]]['displayName'] | replace ('"', '\\"') }}{% endif %}",
+	"title_en": "Region: {{ item['valorant_region'] }}{% if item['valorant_inventory_value'] != 0 %} | ~ {{ item['valorant_inventory_value'] }} VP cost of inventory{% endif %}{% if item['valorantInventory']['WeaponSkins'][0] %} | {{ additionalVars['en'][item['valorantInventory']['WeaponSkins'][0]]['displayName'] | replace ('"', '\\"') }}{% endif %}"
 }

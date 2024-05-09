@@ -26,18 +26,20 @@ class lolzeAutoUP:
     def __init__(
         self, 
         configFilePath = 'config.json',
-        templatesFolderPath = 'files/templates'
+        templatesFolderPath = 'files/templates',
+        tmpFolderPath = 'files/tmp'
     ) -> None:
-        
-        handler = RotatingFileHandler(filename='msg.log', mode='a+', maxBytes=50*1024*1024, 
-                                         backupCount=1, encoding=None, delay=False)
-        logging.basicConfig(level=logging.NOTSET, handlers=[handler])
 
         self.__configFilePath = configFilePath
         self.__templatesFolderPath = Path(templatesFolderPath)
+        self.__tmpFolderPath = Path(tmpFolderPath)
         self.__status = 'running'
         self.__events = []
         self.__config = {}
+        handler = RotatingFileHandler(filename=self.__tmpFolderPath / 'msg.log', mode='a+', maxBytes=50*1024*1024, 
+                                         backupCount=1, encoding=None, delay=False)
+        logging.basicConfig(level=logging.NOTSET, handlers=[handler])
+
         self.__modules = {
             "bump": {
                 "run": self.__bump,
@@ -65,13 +67,14 @@ class lolzeAutoUP:
         if len(self.__events) > 200:
             self.__events.pop(0)
         self.__events.append (event)
-        with open('events.json', 'w') as eventsFile: 
+        eventsFilePath = self.__tmpFolderPath / 'events.json'
+        with open(eventsFilePath, 'w') as eventsFile: 
             json.dump(self.__events, eventsFile) 
     
     def __getEnevnts (self):
-        eventsFilePath = Path('events.json')
+        eventsFilePath = self.__tmpFolderPath / 'events.json'
         if eventsFilePath.is_file():
-            with open('events.json', 'r') as eventsFile:
+            with open(eventsFilePath, 'r') as eventsFile:
                 self.__events = json.load(eventsFile)
         return self.__events
 
@@ -177,7 +180,7 @@ class lolzeAutoUP:
         lastBumps = [0 for _ in range(count)]
         accounts = self.__lolzeBotApi.getOwnedAccounts(order_by='pdate_to_down')
         for accountShowType in accounts:
-            for account in accounts[accountShowType][:count]:
+            for account in accounts[accountShowType]:
                 if account['published_date'] != account['refreshed_date']:
                     lastBumps.append(account['refreshed_date'])
                     lastBumps.sort(reverse=True)
@@ -259,6 +262,7 @@ class lolzeAutoUP:
                         {
                             'type':'buy',
                             'item_id': account["item_id"],
+                            'category_id': account['category_id'],
                             'marketURL': url
                         }
                     )
@@ -273,6 +277,7 @@ class lolzeAutoUP:
         buyEvents = [event for event in events if event['type']=='buy' and event['item_id'] not in reSellEventsItemID]
         title = ''
         title_en = ''
+        price = -1
         for buyEvent in buyEvents:
             if buyEvent['marketURL'].get('autoSellOptions', {}) != {}:
                 if buyEvent['marketURL']['autoSellOptions']['enabled']:
@@ -282,12 +287,21 @@ class lolzeAutoUP:
                         with open(path) as templateFile:
                             templateData = Template(templateFile.read())
                         item = self.__lolzeBotApi.sendRequest(f'{buyEvent["item_id"]}')['item']
-                        jsonTemplate = json.loads(templateData.render(item=item).encode('utf-8'))
+                        additionalVars = {}
+                        additionalVarsFolderPath = Path(self.__templatesFolderPath) / 'additionalVars'
+                        additionalVarsFiles = Path(additionalVarsFolderPath).glob('*')
+                        files = [x for x in additionalVarsFiles if x.is_file()]
+                        for file in files:
+                            with open (file, 'r') as f:
+                                additionalVars.update(json.load(f))
+                        jsonTemplate = templateData.render(item=item, additionalVars=additionalVars).encode('utf-8')
+                        jsonTemplate = json.loads(jsonTemplate)
                         title = jsonTemplate.get('title')
                         title_en = jsonTemplate.get('title_en')
+                        price = jsonTemplate.get('price', -1)
                 else:
                     continue
-            response = self.__lolzeBotApi.reSellAccount(item_id=buyEvent['item_id'], percent=percent, title=title, title_en=title_en)
+            response = self.__lolzeBotApi.reSellAccount(item_id=buyEvent['item_id'], percent=percent, price=price, title=title, title_en=title_en)
             if error := response.get('errors'):
                 self.__addEvent(
                     {

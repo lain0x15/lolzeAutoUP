@@ -184,7 +184,7 @@ class lolzeBotApi:
     ):
         return self.sendRequest(f'/user//orders?order_by={order_by}')['items']
 
-    def reSellAccount (self, item_id, percent, title='', title_en=''):
+    def reSellAccount (self, item_id, percent=0, price=-1, title='', title_en=''):
         iCanSellcategory_id = [13,]
         response = self.sendRequest(f'{item_id}')
         if response['item']['category_id'] not in iCanSellcategory_id:
@@ -193,7 +193,8 @@ class lolzeBotApi:
         title = title if title else response['item']['title']
         title_en = title_en if title_en else response['item']['title_en']
         category_id = response['item']['category_id']
-        price = round (response['item']['price'] + response['item']['price'] * percent/100)
+        price = price if price >= 0 else response['item']['price']
+        price = round (price + price * percent/100)
         login = response['item']['loginData']['login']
         password = response['item']['loginData']['password']
         raw = response['item']['loginData']['raw']
