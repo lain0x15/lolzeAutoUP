@@ -29,10 +29,6 @@ class lolzeAutoUP:
         templatesFolderPath = 'files/templates',
         tmpFolderPath = 'files/tmp'
     ) -> None:
-        
-        handler = RotatingFileHandler(filename='msg.log', mode='a+', maxBytes=50*1024*1024, 
-                                         backupCount=1, encoding=None, delay=False)
-        logging.basicConfig(level=logging.NOTSET, handlers=[handler])
 
         self.__configFilePath = configFilePath
         self.__templatesFolderPath = Path(templatesFolderPath)
@@ -40,6 +36,10 @@ class lolzeAutoUP:
         self.__status = 'running'
         self.__events = []
         self.__config = {}
+        handler = RotatingFileHandler(filename=self.__tmpFolderPath / 'msg.log', mode='a+', maxBytes=50*1024*1024, 
+                                         backupCount=1, encoding=None, delay=False)
+        logging.basicConfig(level=logging.NOTSET, handlers=[handler])
+
         self.__modules = {
             "bump": {
                 "run": self.__bump,
@@ -262,6 +262,7 @@ class lolzeAutoUP:
                         {
                             'type':'buy',
                             'item_id': account["item_id"],
+                            'category_id': account['category_id'],
                             'marketURL': url
                         }
                     )
@@ -286,7 +287,14 @@ class lolzeAutoUP:
                         with open(path) as templateFile:
                             templateData = Template(templateFile.read())
                         item = self.__lolzeBotApi.sendRequest(f'{buyEvent["item_id"]}')['item']
-                        jsonTemplate = json.loads(templateData.render(item=item).encode('utf-8'))
+                        additionalVars = {}
+                        additionalVarsFolderPath = Path(self.__templatesFolderPath) / 'additionalVars'
+                        additionalVarsFiles = Path(additionalVarsFolderPath).glob('*')
+                        files = [x for x in additionalVarsFiles if x.is_file()]
+                        for file in files:
+                            with open (file, 'r') as f:
+                                additionalVars.update(json.load(f))
+                        jsonTemplate = json.loads(templateData.render(item=item, additionalVars=additionalVars).encode('utf-8'))
                         title = jsonTemplate.get('title')
                         title_en = jsonTemplate.get('title_en')
                         price = jsonTemplate.get('price', -1)

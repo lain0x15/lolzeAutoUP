@@ -1,5 +1,4 @@
 ﻿{
 	"title": "Регион: {{ item['valorant_region'] }}{% if item['valorant_inventory_value'] != 0 %}| ~ {{ item['valorant_inventory_value'] }} VP стоимость инвентаря{% endif %}",
-	"title_en": "Region: {{ item['valorant_region'] }}{% if item['valorant_inventory_value'] != 0 %} | ~ {{ item['valorant_inventory_value'] }} VP cost of inventory{% endif %}",
-	"price": 50
+	"title_en": "Region: {{ item['valorant_region'] }}{% if item['valorant_inventory_value'] != 0 %} | ~ {{ item['valorant_inventory_value'] }} VP cost of inventory{% endif %}"
 }
