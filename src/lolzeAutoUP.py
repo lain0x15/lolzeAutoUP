@@ -294,7 +294,8 @@ class lolzeAutoUP:
                         for file in files:
                             with open (file, 'r') as f:
                                 additionalVars.update(json.load(f))
-                        jsonTemplate = json.loads(templateData.render(item=item, additionalVars=additionalVars).encode('utf-8'))
+                        jsonTemplate = templateData.render(item=item, additionalVars=additionalVars).encode('utf-8')
+                        jsonTemplate = json.loads(jsonTemplate)
                         title = jsonTemplate.get('title')
                         title_en = jsonTemplate.get('title_en')
                         price = jsonTemplate.get('price', -1)
