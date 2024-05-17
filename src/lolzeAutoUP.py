@@ -36,6 +36,7 @@ class lolzeAutoUP:
         self.__status = 'running'
         self.__events = []
         self.__config = {}
+        self.__attempsBuyAccount = 3
         handler = RotatingFileHandler(filename=self.__tmpFolderPath / 'msg.log', mode='a+', maxBytes=50*1024*1024, 
                                          backupCount=1, encoding=None, delay=False)
         logging.basicConfig(level=logging.NOTSET, handlers=[handler])
@@ -247,7 +248,8 @@ class lolzeAutoUP:
             accounts = self.__lolzeBotApi.searchAcc(url=url['url'])
             self.__log(f'Аккаунтов найдено {accounts["totalItems"]} по ссылке {url["url"]}')
             for account in accounts['items']:
-                if account['canBuyItem']:
+                buyErrorEvents = [event for event in events if event['type'] == 'buy' and event['item_id'] == account['item_id'] and event['status'] == 'error']
+                if account['canBuyItem'] and len(buyErrorEvents) <= self.__attempsBuyAccount:
                     balance = self.__lolzeBotApi.getInfoAboutMe()['balance']
                     if balance - account['price'] < limitSumOfBalace:
                         self.__log (f'Недостаточно средств для покупки аккаунта https://lzt.market/{account["item_id"]} \
