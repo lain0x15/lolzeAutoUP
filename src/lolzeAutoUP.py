@@ -248,7 +248,7 @@ class lolzeAutoUP:
             accounts = self.__lolzeBotApi.searchAcc(url=url['url'])
             self.__log(f'Аккаунтов найдено {accounts["totalItems"]} по ссылке {url["url"]}')
             for account in accounts['items']:
-                buyErrorEvents = [event for event in events if event['type'] == 'buy' and event['item_id'] == account['item_id'] and event['status'] == 'error']
+                buyErrorEvents = [event for event in self.__getEnevnts() if event['type'] == 'buy' and event['item_id'] == account['item_id'] and event.get('status') == 'error']
                 if account['canBuyItem'] and len(buyErrorEvents) <= self.__attempsBuyAccount:
                     balance = self.__lolzeBotApi.getInfoAboutMe()['balance']
                     if balance - account['price'] < limitSumOfBalace:
@@ -286,7 +286,7 @@ class lolzeAutoUP:
         self.__log('Автоматическая продажа запущена')
         events = self.__getEnevnts()
         reSellEventsItemID = [event['item_id'] for event in events if event['type']=='reSell']
-        buyEvents = [event for event in events if event['type']=='buy' and event['status']=='success' and event['item_id'] not in reSellEventsItemID]
+        buyEvents = [event for event in events if event['type']=='buy' and event.get('status')=='success' and event['item_id'] not in reSellEventsItemID]
         title = ''
         title_en = ''
         price = -1
