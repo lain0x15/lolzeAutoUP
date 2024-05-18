@@ -116,9 +116,11 @@ class lolzeBotApi:
     def buyAcc (
             self,
             item_id: int,
-            price: int
+            price: int,
+            buyWithoutValidation = False
     ) -> dict:
-        return self.sendRequest(f'{item_id}/fast-buy', params={'price':price}, method='POST')
+        params = {'price':price, 'buy_without_validation':1} if buyWithoutValidation else {'price':price}
+        return self.sendRequest(f'{item_id}/fast-buy', params=params, method='POST')
 
     def searchAcc (
         self,

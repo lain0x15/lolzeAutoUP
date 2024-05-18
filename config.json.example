@@ -50,6 +50,7 @@
                         "autoSellOptions": {
                             "enabled": true,
                             "percent": 10,
+                            "buyWithoutValidation": false,
                             "template": "valorant.template"
                         }
                     },

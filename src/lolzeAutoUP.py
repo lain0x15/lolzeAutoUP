@@ -96,7 +96,6 @@ class lolzeAutoUP:
                 self.__log ('Конфигурация загружена успешно. Изменений в конфигурации нету')
                 return {'status': 'ok'}
 
-
     def __sendReport (self):
         report = ''
         profile = self.__lolzeBotApi.getInfoAboutMe()
@@ -156,7 +155,6 @@ class lolzeAutoUP:
         except Exception as err:
             pass
     
-
     def __log (
         self, 
         message: str,
@@ -241,7 +239,7 @@ class lolzeAutoUP:
                 self.__modules['stick']['nextRun'] = time.time() + 600
                 break
          
-    def __autoBuy (self, marketURLs, limitSumOfBalace=0, attemptsBuyAccount = 3) -> None:
+    def __autoBuy (self, marketURLs, limitSumOfBalace=0, attemptsBuyAccount=3) -> None:
         self.__log('Автоматическая покупка запущена')
         for url in marketURLs:
             accounts = self.__lolzeBotApi.searchAcc(url=url['url'])
@@ -254,7 +252,7 @@ class lolzeAutoUP:
                         self.__log (f'Недостаточно средств для покупки аккаунта https://lzt.market/{account["item_id"]} \
                         \nВаш баланс: {balance}\tСтоимость аккаунта: {account["price"]}\t Ваш лимит {limitSumOfBalace}', logLevel='info')
                         continue
-                    res = self.__lolzeBotApi.buyAcc(item_id=account['item_id'], price=account['price'])
+                    res = self.__lolzeBotApi.buyAcc(item_id=account['item_id'], price=account['price'], buyWithoutValidation=url.get('buyWithoutValidation', False))
                     if error := res.get('errors'):
                         self.__log (f'Не удалось купить аккаунт https://lzt.market/{account["item_id"]}\n{error}', logLevel='info')
                         self.__addEvent(
@@ -331,7 +329,6 @@ class lolzeAutoUP:
                     'item_id': buyEvent["item_id"]
                 }
             )
-
 
     def run (self):
         while self.__status == 'running':
