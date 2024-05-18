@@ -357,7 +357,7 @@ class lolzeAutoUP:
                 tagId = tagID
                 break
         else:
-            self.__log (f'Тег {tags} не существует, обновление информации об аккаунтах завершено с ошибкой', logLevel='info')
+            self.__log (f'Тег {tag} не существует, обновление информации об аккаунтах завершено с ошибкой', logLevel='info')
             tagId = -1
         accountsForUpdateInfo = [account for account in accounts if tagId in account['tags']]
         for account in accountsForUpdateInfo:
