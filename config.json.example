@@ -58,7 +58,10 @@
                             "enabled": true,
                             "percent": 10,
                             "buyWithoutValidation": false,
-                            "template": "valorant.template"
+                            "template": "valorant.template",
+                            "tags": [
+                                "autoUpdateInfo"
+                            ]
                         }
                     },
                     {

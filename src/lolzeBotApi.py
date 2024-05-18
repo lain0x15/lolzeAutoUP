@@ -64,7 +64,10 @@ class lolzeBotApi:
         finally:
             client.update ({'lastSendRequest':time.time()})
             self.__clients.append(client)
-        
+     
+    def addTag (self, item_id, tag_id):
+        return self.sendRequest(f'{item_id}/tag?tag_id={tag_id}', method='POST')
+            
     def getOwnedAccounts (
         self, 
         shows: list = ['active', 'paid', 'deleted', 'awaiting'],

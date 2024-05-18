@@ -333,6 +333,21 @@ class lolzeAutoUP:
                     'item_id': buyEvent["item_id"]
                 }
             )
+            #Добавление тега к аккаунту
+            if addTags := buyEvent['marketURL']['autoSellOptions'].get('tags', []):
+                userTagsID = self.__lolzeBotApi.sendRequest("/me")['user']['tags']
+                tmp = {}
+                [tmp.update({userTagsID[userTagID]['title']:userTagID}) for userTagID in userTagsID]
+                userTagsID = tmp
+                for addTag in addTags:
+                    tag_id = userTagsID.get(addTag, None)
+                    if tag_id:
+                        response = self.__lolzeBotApi.addTag(item_id=buyEvent['item_id'], tag_id=tag_id)
+                        if error := response.get('errors'):
+                            self.__log (f'Не удалось добавить тэг к аккаунту https://lzt.market/{buyEvent["item_id"]}\n{error}', logLevel='info')
+                    else:
+                        self.__log (f'Ну существует тега {addTag}. Данный тэг не будет добавлен к аккаунту', logLevel='info')
+                 
     def __autoUpdateInfo (self, tag, periodInSeconds):
         self.__log('Автоматическое обновление информации об аккаунтах запущено')
         accounts = self.__lolzeBotApi.getOwnedAccounts(shows=['active'], limitPagesInShow=5)['active']
@@ -342,12 +357,14 @@ class lolzeAutoUP:
                 tagId = tagID
                 break
         else:
+            self.__log (f'Тег {tags} не существует, обновление информации об аккаунтах завершено с ошибкой', logLevel='info')
             tagId = -1
         accountsForUpdateInfo = [account for account in accounts if tagId in account['tags']]
         for account in accountsForUpdateInfo:
             response = self.__lolzeBotApi.sendRequest(f'{account["item_id"]}/check-account', method='POST')
             if error := response.get('errors'):
                 self.__log (f'Не удалось обновить информацию https://lzt.market/{account["item_id"]}\n{error}', logLevel='info')
+                continue
             self.__log (f'Обновлена информация https://lzt.market/{account["item_id"]}\n', logLevel='info')
         self.__modules['autoUpdateInfo']['nextRun'] = time.time() + periodInSeconds
         nextStart = datetime.datetime.fromtimestamp(self.__modules['autoUpdateInfo']['nextRun']).strftime('%d-%m-%Y %H:%M:%S')
