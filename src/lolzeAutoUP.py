@@ -249,7 +249,7 @@ class lolzeAutoUP:
             self.__log(f'Аккаунтов найдено {accounts["totalItems"]} по ссылке {url["url"]}')
             for account in accounts['items']:
                 buyErrorEvents = [event for event in self.__getEnevnts() if event['type'] == 'buy' and event['item_id'] == account['item_id'] and event.get('status') == 'error']
-                if account['canBuyItem'] and len(buyErrorEvents) <= self.__attempsBuyAccount:
+                if account['canBuyItem'] and len(buyErrorEvents) < self.__attempsBuyAccount:
                     balance = self.__lolzeBotApi.getInfoAboutMe()['balance']
                     if balance - account['price'] < limitSumOfBalace:
                         self.__log (f'Недостаточно средств для покупки аккаунта https://lzt.market/{account["item_id"]} \
