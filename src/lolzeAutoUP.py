@@ -361,7 +361,7 @@ class lolzeAutoUP:
             tagId = -1
         accountsForUpdateInfo = [account for account in accounts if tagId in account['tags']]
         for account in accountsForUpdateInfo:
-            response = self.__lolzeBotApi.sendRequest(f'{account["item_id"]}/check-account', method='POST')
+            response = self.__lolzeBotApi.sendRequest(f'{account["item_id"]}/goods/check', method='POST')
             if error := response.get('errors'):
                 self.__log (f'Не удалось обновить информацию https://lzt.market/{account["item_id"]}\n{error}', logLevel='info')
                 continue
