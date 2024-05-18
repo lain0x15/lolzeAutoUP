@@ -65,7 +65,7 @@ class lolzeAutoUP:
         }
 
     def __addEvent (self, event):
-        if len(self.__events) > 500:
+        if len(self.__events) > 1000:
             self.__events.pop(0)
         self.__events.append (event)
         eventsFilePath = self.__tmpFolderPath / 'events.json'
