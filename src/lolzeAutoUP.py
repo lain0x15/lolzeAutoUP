@@ -60,6 +60,10 @@ class lolzeAutoUP:
             "autoSell": {
                 "run": self.__autoSell,
                 "nextRun": 0
+            },
+            "autoUpdateInfo": {
+                "run": self.__autoUpdateInfo,
+                "nextRun": 0
             }
         }
 
@@ -329,6 +333,25 @@ class lolzeAutoUP:
                     'item_id': buyEvent["item_id"]
                 }
             )
+    def __autoUpdateInfo (self, tag, periodInSeconds):
+        self.__log('Автоматическое обновление информации об аккаунтах запущено')
+        accounts = self.__lolzeBotApi.getOwnedAccounts(shows=['active'], limitPagesInShow=5)['active']
+        tags = self.__lolzeBotApi.sendRequest("/me")['user']['tags']
+        for tagID in tags:
+            if tags[tagID]['title'] == tag:
+                tagId = tagID
+                break
+        else:
+            tagId = -1
+        accountsForUpdateInfo = [account for account in accounts if tagId in account['tags']]
+        for account in accountsForUpdateInfo:
+            response = self.__lolzeBotApi.sendRequest(f'{account["item_id"]}/check-account', method='POST')
+            if error := response.get('errors'):
+                self.__log (f'Не удалось обновить информацию https://lzt.market/{account["item_id"]}\n{error}', logLevel='info')
+            self.__log (f'Обновлена информация https://lzt.market/{account["item_id"]}\n', logLevel='info')
+        self.__modules['autoUpdateInfo']['nextRun'] = time.time() + periodInSeconds
+        nextStart = datetime.datetime.fromtimestamp(self.__modules['autoUpdateInfo']['nextRun']).strftime('%d-%m-%Y %H:%M:%S')
+        self.__log (f'Следующая обновление информации {nextStart}', logLevel='info')
 
     def run (self):
         while self.__status == 'running':

@@ -39,6 +39,13 @@
                 "percent": 20
             }
         },
+        "autoUpdateInfo": {
+            "enabled": false,
+            "params": {
+                "tag": "autoUpdateInfo",
+                "periodInSeconds": 3600
+            }
+        },
         "autoBuy": {
             "enabled": false,
             "params":{

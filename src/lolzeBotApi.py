@@ -90,7 +90,8 @@ class lolzeBotApi:
                             'price': account['price'],
                             'is_sticky': account['is_sticky'],
                             'canStickItem': account['canStickItem'],
-                            'canUnstickItem': account['canUnstickItem']
+                            'canUnstickItem': account['canUnstickItem'],
+                            'tags': account['tags']
                         }
                     )
             result.update ({f'{show}':tempResult})
