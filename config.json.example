@@ -43,6 +43,7 @@
             "enabled": false,
             "params":{
                 "limitSumOfBalace": 0,
+                "attempsBuyAccount": 3,
                 "marketURLs": [
                     {
                         "url": "https://lzt.market/mihoyo/?pmax=5",
