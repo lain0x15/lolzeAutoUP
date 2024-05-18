@@ -241,14 +241,14 @@ class lolzeAutoUP:
                 self.__modules['stick']['nextRun'] = time.time() + 600
                 break
          
-    def __autoBuy (self, marketURLs, limitSumOfBalace=0, attempsBuyAccount = 3) -> None:
+    def __autoBuy (self, marketURLs, limitSumOfBalace=0, attemptsBuyAccount = 3) -> None:
         self.__log('Автоматическая покупка запущена')
         for url in marketURLs:
             accounts = self.__lolzeBotApi.searchAcc(url=url['url'])
             self.__log(f'Аккаунтов найдено {accounts["totalItems"]} по ссылке {url["url"]}')
             for account in accounts['items']:
                 buyErrorEvents = [event for event in self.__getEnevnts() if event['type'] == 'buy' and event['item_id'] == account['item_id'] and event.get('status') == 'error']
-                if account['canBuyItem'] and len(buyErrorEvents) < attempsBuyAccount:
+                if account['canBuyItem'] and len(buyErrorEvents) < attemptsBuyAccount:
                     balance = self.__lolzeBotApi.getInfoAboutMe()['balance']
                     if balance - account['price'] < limitSumOfBalace:
                         self.__log (f'Недостаточно средств для покупки аккаунта https://lzt.market/{account["item_id"]} \
