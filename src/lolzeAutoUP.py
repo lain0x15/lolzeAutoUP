@@ -325,7 +325,7 @@ class lolzeAutoUP:
                 )
                 self.__log (f'Не удалось выставить на продажу https://lzt.market/{buyEvent["item_id"]}\n{error}', logLevel='info')
                 return
-            self.__log (f'Выставлен на продажу https://lzt.market/{buyEvent["item_id"]}', logLevel='info')
+            self.__log (f'Выставлен на продажу https://lzt.market/{response["item"]["item_id"]}', logLevel='info')
             self.__addEvent(
                 {
                     'type':'reSell',
@@ -342,9 +342,9 @@ class lolzeAutoUP:
                 for addTag in addTags:
                     tag_id = userTagsID.get(addTag, None)
                     if tag_id:
-                        response = self.__lolzeBotApi.addTag(item_id=buyEvent['item_id'], tag_id=tag_id)
+                        response = self.__lolzeBotApi.addTag(item_id=response["item"]["item_id"], tag_id=tag_id)
                         if error := response.get('errors'):
-                            self.__log (f'Не удалось добавить тэг к аккаунту https://lzt.market/{buyEvent["item_id"]}\n{error}', logLevel='info')
+                            self.__log (f'Не удалось добавить тэг к аккаунту https://lzt.market/{response["item"]["item_id"]}\n{error}', logLevel='info')
                     else:
                         self.__log (f'Ну существует тега {addTag}. Данный тэг не будет добавлен к аккаунту', logLevel='info')
                  
