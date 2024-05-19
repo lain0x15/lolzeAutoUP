@@ -359,7 +359,7 @@ class lolzeAutoUP:
         else:
             self.__log (f'Тег {tag} не существует, обновление информации об аккаунтах завершено с ошибкой', logLevel='info')
             tagId = -1
-        accountsForUpdateInfo = [account for account in accounts if tagId in account['tags']]
+        accountsForUpdateInfo = [account for account in accounts if tagId in account['tags'] and account['canUpdateItemStats']]
         for account in accountsForUpdateInfo:
             response = self.__lolzeBotApi.sendRequest(f'{account["item_id"]}/check-account', method='POST')
             if error := response.get('errors'):

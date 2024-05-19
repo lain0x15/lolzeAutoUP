@@ -94,6 +94,7 @@ class lolzeBotApi:
                             'is_sticky': account['is_sticky'],
                             'canStickItem': account['canStickItem'],
                             'canUnstickItem': account['canUnstickItem'],
+                            'canUpdateItemStats': account['canUpdateItemStats'],
                             'tags': account['tags']
                         }
                     )
