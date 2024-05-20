@@ -54,10 +54,10 @@
                 "marketURLs": [
                     {
                         "url": "https://lzt.market/mihoyo/?pmax=5",
+                        "buyWithoutValidation": false,
                         "autoSellOptions": {
                             "enabled": true,
                             "percent": 10,
-                            "buyWithoutValidation": false,
                             "template": "valorant.template",
                             "tags": [
                                 "autoUpdateInfo"
