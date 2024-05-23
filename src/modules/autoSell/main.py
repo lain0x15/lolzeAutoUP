@@ -12,28 +12,27 @@ def run(self, percent, templatesFolderPath = 'files/templates'):
     price = -1
     templatesFolderPath = Path(templatesFolderPath)
     for buyEvent in buyEvents:
-        if buyEvent['marketURL'].get('autoSellOptions', {}) != {}:
-            if buyEvent['marketURL']['autoSellOptions']['enabled']:
-                percent = buyEvent['marketURL']['autoSellOptions'].get('percent', percent)
-                if buyEvent['marketURL']['autoSellOptions'].get('template'):
-                    path = templatesFolderPath / buyEvent['marketURL']['autoSellOptions']['template']
-                    with open(path, encoding='utf-8-sig') as templateFile:
-                        templateData = Template(templateFile.read())
-                    item = self.lolzeBotApi.sendRequest(f'{buyEvent["item_id"]}')['item']
-                    additionalVars = {}
-                    additionalVarsFolderPath = Path(templatesFolderPath) / 'additionalVars'
-                    additionalVarsFiles = Path(additionalVarsFolderPath).glob('*')
-                    files = [x for x in additionalVarsFiles if x.is_file()]
-                    for file in files:
-                        with open (file, 'r', encoding='utf-8-sig') as f:
-                            additionalVars.update(json.load(f))
-                    jsonTemplate = templateData.render(item=item, additionalVars=additionalVars)
-                    jsonTemplate = json.loads(jsonTemplate)
-                    title = jsonTemplate.get('title')
-                    title_en = jsonTemplate.get('title_en')
-                    price = jsonTemplate.get('price', -1)
-            else:
-                continue
+        if buyEvent['marketURL'].get('autoSellOptions', {}).get('enabled', False):
+            percent = buyEvent['marketURL']['autoSellOptions'].get('percent', percent)
+            if buyEvent['marketURL']['autoSellOptions'].get('template'):
+                path = templatesFolderPath / buyEvent['marketURL']['autoSellOptions']['template']
+                with open(path, encoding='utf-8-sig') as templateFile:
+                    templateData = Template(templateFile.read())
+                item = self.lolzeBotApi.sendRequest(f'{buyEvent["item_id"]}')['item']
+                additionalVars = {}
+                additionalVarsFolderPath = Path(templatesFolderPath) / 'additionalVars'
+                additionalVarsFiles = Path(additionalVarsFolderPath).glob('*')
+                files = [x for x in additionalVarsFiles if x.is_file()]
+                for file in files:
+                    with open (file, 'r', encoding='utf-8-sig') as f:
+                        additionalVars.update(json.load(f))
+                jsonTemplate = templateData.render(item=item, additionalVars=additionalVars)
+                jsonTemplate = json.loads(jsonTemplate)
+                title = jsonTemplate.get('title')
+                title_en = jsonTemplate.get('title_en')
+                price = jsonTemplate.get('price', -1)
+        else:
+            continue
         response = self.lolzeBotApi.reSellAccount(item_id=buyEvent['item_id'], percent=percent, price=price, title=title, title_en=title_en)
         if error := response.get('errors'):
             self.addEvent(
