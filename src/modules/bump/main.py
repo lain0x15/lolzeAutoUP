@@ -36,7 +36,7 @@ def run (self, methodBump) -> None:
         self.log (f'Осталось поднятий: {countAvailableBumps}\nДата следующей попытки поднятия: {nextBumpDate}', logLevel='info')
         sleepTime = sleepTime if sleepTime > 0 else 0
         return time.time() + sleepTime
-        return
+
     accounts = self.lolzeBotApi.getOwnedAccounts(shows=['active'], order_by=methodBump)['active']
     for account in accounts:
         if time.time() - account['refreshed_date'] > marketPermissions['bumpItemPeriod'] * 60 * 60:
