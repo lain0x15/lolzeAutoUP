@@ -23,7 +23,7 @@ class lolzeBotApi:
         method: str = 'GET',
         params: dict = {},
         headersRewrite = {},
-        payload = ""
+        payload = None
     ) -> dict:
         client = self.__clients.pop(0)
         try:
@@ -36,31 +36,31 @@ class lolzeBotApi:
             }
             headers.update (headersRewrite)
             url = self.__base_url_market + pathData
-            if method == 'GET':
-                response = requests.get (url, params=params, headers=headers, proxies=client.get('proxy'), data="")
-            elif method == 'POST':
-                if payload == "":
-                    response = requests.post (url, params=params, headers=headers, proxies=client.get('proxy'))
-                else:
-                    response = requests.post (url, params=params, headers=headers, proxies=client.get('proxy'), data=payload)
-            elif method == 'DELETE':
-                response = requests.delete (url, params=params, headers=headers, proxies=client.get('proxy'))
-            else:
-                raise Exception (f'Неправильный метод {method}, ожидается GET, POST, DELETE')
-            if response.status_code == 200:
-                response = response.json()
-            elif response.status_code == 400:
-                raise Exception(f'Сайт выдал ошибку {response.status_code}\nпри запросе к ссылке {url}\n{response.content.decode("unicode-escape")}')
-            elif response.status_code == 403:
-                response = response.json()
-            elif response.status_code == 429:
-                raise Exception(f'Слишком много запросов к api сайта. Сайт выдал ошибку {response.status_code}')
-            else:
-                raise Exception(f'Сайт выдал ошибку {response.status_code}')
-            self.__lastSendRequest = time.time()
-            if response.get('error') in ['invalid_token']:
+            methods = {
+                'GET': requests.get,
+                'POST': requests.post,
+                'DELETE': requests.delete
+            }
+            handlers = {
+                200: lambda response: response.json(),
+                400: lambda response: Exception(f'Сайт выдал ошибку {response.status_code}\nпри запросе к ссылке {url}\n{response.content.decode("unicode-escape")}'),
+                403: lambda response: response.json(),
+                429: lambda response: Exception(f'Слишком много запросов к api сайта. Сайт выдал ошибку {response.status_code}')
+            }
+            if method not in methods:
+                raise Exception(f'Неправильный метод {method}, ожидается GET, POST, DELETE')
+            
+            response = methods[method](url, params=params, headers=headers, proxies=client.get('proxy'), data=payload)
+            handler = handlers.get(response.status_code, lambda response: Exception(f'Сайт выдал ошибку {response.status_code}'))
+
+            result = handler(response)
+
+            if isinstance(result, Exception):
+                raise result
+            
+            if result.get('error') in ['invalid_token']:
                 raise lolzeBotApiException(typeError = response['error'])
-            return response
+            return result
         finally:
             client.update ({'lastSendRequest':time.time()})
             self.__clients.append(client)
