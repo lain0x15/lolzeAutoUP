@@ -105,13 +105,13 @@ class lolzeAutoUP:
                     self.lolzeBotApi = lolzeBotApi(clients)
                     self.telegramApi = TelegramAPI(self.__config.get('telegram')['token']) if self.__config.get('telegram')['enabled'] else ''
                 for module in self.__config['modules']:
-                    if self.__config['modules'][module]['enabled'] == True and self.__modulesInfo.get(module, {}).get('nextRun', 0) < time.time():
+                    if self.__config['modules'][module]['enabled'] == True and self.__modulesInfo.get(module, {}).get('nextRun', 0) <= time.time():
                         params = self.__config['modules'][module]['params']
                         spec = importlib.util.spec_from_file_location('run', Path(f'src/modules/{module}/main.py'))
                         moduleExec = importlib.util.module_from_spec(spec)
                         spec.loader.exec_module(moduleExec)
                         nextRun = moduleExec.run(self, **params)
-                        nextRun = nextRun if type(nextRun) is int else 0
+                        nextRun = nextRun if type(nextRun) in (float, int) else 0
                         self.__modulesInfo.update({module: {'nextRun': nextRun}})
             except Exception as err:
                 self.log(f'Ошибка: {err}. Перезапускаюсь.', logLevel='error')
