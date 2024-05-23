@@ -16,7 +16,7 @@ def run (self, methodSticky: str) -> int:
             data = self.lolzeBotApi.stickAccount(gen[0]["item_id"])
             if error := data.get('errors'):
                 self.log(f'Не удалось закрепить https://lzt.market/{gen[0]["item_id"]}\n{error}', logLevel='info')
-                return
+                return 0
             self.log(f'Закреплен https://lzt.market/{gen[0]["item_id"]}', logLevel='info')
         else:
             self.log(f'Нечего закреплять', logLevel='info')
