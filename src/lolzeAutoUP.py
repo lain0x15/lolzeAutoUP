@@ -114,6 +114,5 @@ class lolzeAutoUP:
                         self.__modulesInfo.update({module: {'nextRun': nextRun}})
             except Exception as err:
                 self.log(f'Ошибка: {err}. Перезапускаюсь.', logLevel='error')
-                raise (err)
             finally:
                 pass
