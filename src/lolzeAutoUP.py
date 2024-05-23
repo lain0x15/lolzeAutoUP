@@ -60,11 +60,15 @@ class lolzeAutoUP:
             "autoSell": {
                 "run": self.__autoSell,
                 "nextRun": 0
+            },
+            "autoUpdateInfo": {
+                "run": self.__autoUpdateInfo,
+                "nextRun": 0
             }
         }
 
     def __addEvent (self, event):
-        if len(self.__events) > 200:
+        if len(self.__events) > 1000:
             self.__events.pop(0)
         self.__events.append (event)
         eventsFilePath = self.__tmpFolderPath / 'events.json'
@@ -95,7 +99,6 @@ class lolzeAutoUP:
             else:
                 self.__log ('Конфигурация загружена успешно. Изменений в конфигурации нету')
                 return {'status': 'ok'}
-
 
     def __sendReport (self):
         report = ''
@@ -156,7 +159,6 @@ class lolzeAutoUP:
         except Exception as err:
             pass
     
-
     def __log (
         self, 
         message: str,
@@ -241,27 +243,38 @@ class lolzeAutoUP:
                 self.__modules['stick']['nextRun'] = time.time() + 600
                 break
          
-    def __autoBuy (self, marketURLs, limitSumOfBalace=0) -> None:
+    def __autoBuy (self, marketURLs, limitSumOfBalace=0, attemptsBuyAccount=3) -> None:
         self.__log('Автоматическая покупка запущена')
         for url in marketURLs:
             accounts = self.__lolzeBotApi.searchAcc(url=url['url'])
             self.__log(f'Аккаунтов найдено {accounts["totalItems"]} по ссылке {url["url"]}')
             for account in accounts['items']:
-                if account['canBuyItem']:
+                buyErrorEvents = [event for event in self.__getEnevnts() if event['type'] == 'buy' and event['item_id'] == account['item_id'] and event.get('status') == 'error']
+                if account['canBuyItem'] and len(buyErrorEvents) < attemptsBuyAccount:
                     balance = self.__lolzeBotApi.getInfoAboutMe()['balance']
                     if balance - account['price'] < limitSumOfBalace:
                         self.__log (f'Недостаточно средств для покупки аккаунта https://lzt.market/{account["item_id"]} \
                         \nВаш баланс: {balance}\tСтоимость аккаунта: {account["price"]}\t Ваш лимит {limitSumOfBalace}', logLevel='info')
                         continue
-                    res = self.__lolzeBotApi.buyAcc(item_id=account['item_id'], price=account['price'])
+                    res = self.__lolzeBotApi.buyAcc(item_id=account['item_id'], price=account['price'], buyWithoutValidation=url.get('buyWithoutValidation', False))
                     if error := res.get('errors'):
                         self.__log (f'Не удалось купить аккаунт https://lzt.market/{account["item_id"]}\n{error}', logLevel='info')
+                        self.__addEvent(
+                            {
+                                'type':'buy',
+                                'item_id': account["item_id"],
+                                'status': 'error',
+                                'category_id': account['category_id'],
+                                'marketURL': url
+                            }
+                        )
                         continue
                     self.__log (f'Автобай купил аккаунт https://lzt.market/{account["item_id"]}', logLevel='info')
                     self.__addEvent(
                         {
                             'type':'buy',
                             'item_id': account["item_id"],
+                            'status': 'success',
                             'category_id': account['category_id'],
                             'marketURL': url
                         }
@@ -274,7 +287,7 @@ class lolzeAutoUP:
         self.__log('Автоматическая продажа запущена')
         events = self.__getEnevnts()
         reSellEventsItemID = [event['item_id'] for event in events if event['type']=='reSell']
-        buyEvents = [event for event in events if event['type']=='buy' and event['item_id'] not in reSellEventsItemID]
+        buyEvents = [event for event in events if event['type']=='buy' and event.get('status')=='success' and event['item_id'] not in reSellEventsItemID]
         title = ''
         title_en = ''
         price = -1
@@ -312,7 +325,7 @@ class lolzeAutoUP:
                 )
                 self.__log (f'Не удалось выставить на продажу https://lzt.market/{buyEvent["item_id"]}\n{error}', logLevel='info')
                 return
-            self.__log (f'Выставлен на продажу https://lzt.market/{buyEvent["item_id"]}', logLevel='info')
+            self.__log (f'Выставлен на продажу https://lzt.market/{response["item"]["item_id"]}', logLevel='info')
             self.__addEvent(
                 {
                     'type':'reSell',
@@ -320,7 +333,42 @@ class lolzeAutoUP:
                     'item_id': buyEvent["item_id"]
                 }
             )
-
+            #Добавление тега к аккаунту
+            if addTags := buyEvent['marketURL']['autoSellOptions'].get('tags', []):
+                userTagsID = self.__lolzeBotApi.sendRequest("/me")['user']['tags']
+                tmp = {}
+                [tmp.update({userTagsID[userTagID]['title']:userTagID}) for userTagID in userTagsID]
+                userTagsID = tmp
+                for addTag in addTags:
+                    tag_id = userTagsID.get(addTag, None)
+                    if tag_id:
+                        response = self.__lolzeBotApi.addTag(item_id=response["item"]["item_id"], tag_id=tag_id)
+                        if error := response.get('errors'):
+                            self.__log (f'Не удалось добавить тэг к аккаунту https://lzt.market/{response["item"]["item_id"]}\n{error}', logLevel='info')
+                    else:
+                        self.__log (f'Ну существует тега {addTag}. Данный тэг не будет добавлен к аккаунту', logLevel='info')
+                 
+    def __autoUpdateInfo (self, tag, periodInSeconds):
+        self.__log('Автоматическое обновление информации об аккаунтах запущено')
+        accounts = self.__lolzeBotApi.getOwnedAccounts(shows=['active'], limitPagesInShow=5)['active']
+        tags = self.__lolzeBotApi.sendRequest("/me")['user']['tags']
+        for tagID in tags:
+            if tags[tagID]['title'] == tag:
+                tagId = tagID
+                break
+        else:
+            self.__log (f'Тег {tag} не существует, обновление информации об аккаунтах завершено с ошибкой', logLevel='info')
+            tagId = -1
+        accountsForUpdateInfo = [account for account in accounts if tagId in account['tags'] and account['canUpdateItemStats']]
+        for account in accountsForUpdateInfo:
+            response = self.__lolzeBotApi.sendRequest(f'{account["item_id"]}/check-account', method='POST')
+            if error := response.get('errors'):
+                self.__log (f'Не удалось обновить информацию https://lzt.market/{account["item_id"]}\n{error}', logLevel='info')
+                continue
+            self.__log (f'Обновлена информация https://lzt.market/{account["item_id"]}\n', logLevel='info')
+        self.__modules['autoUpdateInfo']['nextRun'] = time.time() + periodInSeconds
+        nextStart = datetime.datetime.fromtimestamp(self.__modules['autoUpdateInfo']['nextRun']).strftime('%d-%m-%Y %H:%M:%S')
+        self.__log (f'Следующая обновление информации {nextStart}', logLevel='info')
 
     def run (self):
         while self.__status == 'running':

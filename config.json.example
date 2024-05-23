@@ -39,17 +39,29 @@
                 "percent": 20
             }
         },
+        "autoUpdateInfo": {
+            "enabled": false,
+            "params": {
+                "tag": "autoUpdateInfo",
+                "periodInSeconds": 3600
+            }
+        },
         "autoBuy": {
             "enabled": false,
             "params":{
                 "limitSumOfBalace": 0,
+                "attempsBuyAccount": 3,
                 "marketURLs": [
                     {
                         "url": "https://lzt.market/mihoyo/?pmax=5",
+                        "buyWithoutValidation": false,
                         "autoSellOptions": {
                             "enabled": true,
                             "percent": 10,
-                            "template": "valorant.template"
+                            "template": "valorant.template",
+                            "tags": [
+                                "autoUpdateInfo"
+                            ]
                         }
                     },
                     {

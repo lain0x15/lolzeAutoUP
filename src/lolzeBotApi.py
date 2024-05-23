@@ -64,7 +64,10 @@ class lolzeBotApi:
         finally:
             client.update ({'lastSendRequest':time.time()})
             self.__clients.append(client)
-        
+     
+    def addTag (self, item_id, tag_id):
+        return self.sendRequest(f'{item_id}/tag?tag_id={tag_id}', method='POST')
+            
     def getOwnedAccounts (
         self, 
         shows: list = ['active', 'paid', 'deleted', 'awaiting'],
@@ -90,7 +93,9 @@ class lolzeBotApi:
                             'price': account['price'],
                             'is_sticky': account['is_sticky'],
                             'canStickItem': account['canStickItem'],
-                            'canUnstickItem': account['canUnstickItem']
+                            'canUnstickItem': account['canUnstickItem'],
+                            'canUpdateItemStats': account['canUpdateItemStats'],
+                            'tags': account['tags']
                         }
                     )
             result.update ({f'{show}':tempResult})
@@ -116,9 +121,11 @@ class lolzeBotApi:
     def buyAcc (
             self,
             item_id: int,
-            price: int
+            price: int,
+            buyWithoutValidation = False
     ) -> dict:
-        return self.sendRequest(f'{item_id}/fast-buy', params={'price':price}, method='POST')
+        params = {'price':price, 'buy_without_validation':1} if buyWithoutValidation else {'price':price}
+        return self.sendRequest(f'{item_id}/fast-buy', params=params, method='POST')
 
     def searchAcc (
         self,

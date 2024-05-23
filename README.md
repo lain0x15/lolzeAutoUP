@@ -69,13 +69,18 @@ lolzeAutoUp - бот для маркета lolze имеющий функцион
             "enabled": false, включить автоматическую покупку
             "params":{
                 "limitSumOfBalace": 0, - лимит. Если ваш баланс ниже, покупать не будет
+                "attempsBuyAccount": 3, - количество попыток купить аккаунт
                 "marketURLs": [ - ссылки для покупки
                     {
                         "url": "https://lzt.market/mihoyo/?pmax=5", - URI с фильтрами для поиска аккаунтов
+                        "buyWithoutValidation": false, - true покупать без проверки на валид
                         "autoSellOptions": { - опционально
                             "enabled": true, - true/false включить/выключить автопродажу для данной ссылки (при выключенном модуле автопродажи ни на что не влияет)
                             "percent": 10, - процент за каторый будет продажа (по умолчанию берется из модуля autoSell)
-                            "template": "valorant.template" - файл шаблона для формирования title/title_en
+                            "template": "valorant.template", - файл шаблона для формирования title/title_en
+                            "tags": [ - добавить теги к аккаунту при продаже
+                                "autoUpdateInfo"
+                            ]
                         }
                     },
                     {
