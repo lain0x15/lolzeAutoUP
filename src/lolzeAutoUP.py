@@ -111,7 +111,6 @@ class lolzeAutoUP:
                         moduleExec = importlib.util.module_from_spec(spec)
                         spec.loader.exec_module(moduleExec)
                         nextRun = moduleExec.run(self, **params)
-                        nextRun = nextRun if type(nextRun) in (float, int) else 0
                         self.__modulesInfo.update({module: {'nextRun': nextRun}})
             except Exception as err:
                 self.log(f'Ошибка: {err}. Перезапускаюсь.', logLevel='error')

@@ -51,3 +51,4 @@ def run (self, methodBump) -> None:
         nextBumpDate = datetime.datetime.fromtimestamp(3600 + time.time() ).strftime('%d-%m-%Y %H:%M:%S')
         self.log (f'Осталось поднятий: {countAvailableBumps}\nНет аккаунтов для поднятия. Следующая попытка поднятия {nextBumpDate}', logLevel='info')
         return time.time() + 3600
+    return 0
