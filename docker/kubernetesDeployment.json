@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lolzeautoup
+  labels:
+    app: lolzeautoup
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lolzeautoup
+  template:
+    metadata:
+      labels:
+        app: lolzeautoup
+    spec:
+      volumes:
+      - name: git-repo
+        emptyDir: {}
+      - name: config-volume
+        configMap:
+          name: lolzeautoup
+      initContainers:
+        - name: git-clone
+          image: alpine/git
+          command:
+            - sh
+            - -c
+            - |
+              git clone https://github.com/lain0x15/lolzeAutoUP.git /git-repo
+          volumeMounts:
+            - name: git-repo
+              mountPath: /git-repo
+      containers:
+      - name: lolzeautoup
+        image: max0x15/lolzeautoup:latest
+        env:
+          - name: PYTHONUNBUFFERED
+            value: "1"
+        volumeMounts:
+          - name: git-repo
+            mountPath: /usr/src/app
+          - name: config-volume
+            mountPath: /usr/src/app/config.json
+            subPath: config.json
