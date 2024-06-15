@@ -35,7 +35,7 @@ spec:
       - name: lolzeautoup
         image: python:3.12-slim
         command: ["/bin/sh", "-c"]
-        args: ["pip install -r /usr/src/app/requirements.txt && python3.12 /usr/src/app/main.py"]
+        args: ["ln -s /config/config.json /usr/src/app/config.json && pip install -r /usr/src/app/requirements.txt && python3.12 /usr/src/app/main.py"]
         env:
           - name: PYTHONUNBUFFERED
             value: "1"
@@ -43,5 +43,4 @@ spec:
           - name: git-repo
             mountPath: /usr/src/app
           - name: config-volume
-            mountPath: /usr/src/app/config.json
-            subPath: config.json
+            mountPath: /config
