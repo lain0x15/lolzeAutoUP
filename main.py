@@ -1,5 +1,6 @@
 from src.lolzeAutoUP import lolzeAutoUP
- 
+from pathlib import Path
 if __name__ == "__main__":
-    bot = lolzeAutoUP (configFilePath = "config.json")
+    baseDir = Path(__file__).parent
+    bot = lolzeAutoUP (configFilePath = baseDir / "config.json", tmpFolderPath = baseDir / 'files/tmp',  modulesPath = baseDir / 'src/modules')
     bot.run()

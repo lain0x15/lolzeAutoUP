@@ -22,11 +22,12 @@ class lolzeAutoUP:
     def __init__(
         self, 
         configFilePath = 'config.json',
-        tmpFolderPath = 'files/tmp'
+        tmpFolderPath = 'files/tmp',
+        modulesPath = 'src/modules'
     ) -> None:
-
         self.__configFilePath = configFilePath
         self.__tmpFolderPath = Path(tmpFolderPath)
+        self.__modulesPath = Path(modulesPath)
         self.__status = 'running'
         self.__events = []
         self.__config = {}
@@ -107,7 +108,7 @@ class lolzeAutoUP:
                 for module in self.__config['modules']:
                     if self.__config['modules'][module]['enabled'] == True and self.__modulesInfo.get(module, {}).get('nextRun', 0) <= time.time():
                         params = self.__config['modules'][module]['params']
-                        spec = importlib.util.spec_from_file_location('run', Path(f'src/modules/{module}/main.py'))
+                        spec = importlib.util.spec_from_file_location('run', self.__modulesPath / f'{module}/main.py')
                         moduleExec = importlib.util.module_from_spec(spec)
                         spec.loader.exec_module(moduleExec)
                         nextRun = moduleExec.run(self, **params)
