@@ -23,7 +23,7 @@ class lolzeAutoUP:
         self, 
         configFilePath = 'config.json',
         tmpFolderPath = 'files/tmp',
-        modulesPath = 'src/modules'
+        modulesPath = 'src/modules',
         filesPath = 'files'
     ) -> None:
         self.__configFilePath = configFilePath
