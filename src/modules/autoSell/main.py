@@ -2,7 +2,7 @@ from jinja2 import Template
 from pathlib import Path
 import json
 
-def run(self, percent, templatesFolderPath = self.filesPath / 'templates'):
+def run(self, percent):
     self.log('Автоматическая продажа запущена')
     events = self.getEvents()
     reSellEventsItemID = [event['item_id'] for event in events if event['type']=='reSell']
@@ -10,7 +10,7 @@ def run(self, percent, templatesFolderPath = self.filesPath / 'templates'):
     title = ''
     title_en = ''
     price = -1
-    templatesFolderPath = Path(templatesFolderPath)
+    templatesFolderPath = self.filesPath / 'templates'
     for buyEvent in buyEvents:
         if buyEvent['marketURL'].get('autoSellOptions', {}).get('enabled', False):
             percent = buyEvent['marketURL']['autoSellOptions'].get('percent', percent)
