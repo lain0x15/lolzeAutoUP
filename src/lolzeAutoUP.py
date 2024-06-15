@@ -24,10 +24,12 @@ class lolzeAutoUP:
         configFilePath = 'config.json',
         tmpFolderPath = 'files/tmp',
         modulesPath = 'src/modules'
+        filesPath = 'files'
     ) -> None:
         self.__configFilePath = configFilePath
         self.__tmpFolderPath = Path(tmpFolderPath)
         self.__modulesPath = Path(modulesPath)
+        self.filesPath = Path (filesPath)
         self.__status = 'running'
         self.__events = []
         self.__config = {}

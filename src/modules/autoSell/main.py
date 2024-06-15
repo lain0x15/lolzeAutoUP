@@ -2,7 +2,7 @@ from jinja2 import Template
 from pathlib import Path
 import json
 
-def run(self, percent, templatesFolderPath = 'files/templates'):
+def run(self, percent, templatesFolderPath = self.filesPath / 'templates'):
     self.log('Автоматическая продажа запущена')
     events = self.getEvents()
     reSellEventsItemID = [event['item_id'] for event in events if event['type']=='reSell']

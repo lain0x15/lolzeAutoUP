@@ -27,13 +27,15 @@ spec:
             - sh
             - -c
             - |
-              git clone https://github.com/lain0x15/lolzeAutoUP.git /git-repo
+              git clone -b dev https://github.com/lain0x15/lolzeAutoUP.git /git-repo
           volumeMounts:
             - name: git-repo
               mountPath: /git-repo
       containers:
       - name: lolzeautoup
-        image: max0x15/lolzeautoup:latest
+        image: python:3.12-slim
+        command: ["/bin/sh", "-c"]
+        args: ["pip install -r /usr/src/app/requirements.txt && python3.12 /usr/src/app/main.py"]
         env:
           - name: PYTHONUNBUFFERED
             value: "1"
