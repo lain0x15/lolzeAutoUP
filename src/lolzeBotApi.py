@@ -50,7 +50,7 @@ class lolzeBotApi:
             if method not in methods:
                 raise Exception(f'Неправильный метод {method}, ожидается GET, POST, DELETE')
             
-            response = methods[method](url, params=params, headers=headers, proxies=client.get('proxy'), data=payload)
+            response = methods[method](url, params=params, headers=headers, timeout=(10, 300), proxies=client.get('proxy'), data=payload)
             handler = handlers.get(response.status_code, lambda response: Exception(f'Сайт выдал ошибку {response.status_code}'))
 
             result = handler(response)
