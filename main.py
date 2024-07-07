@@ -163,7 +163,11 @@ class lolzeAutoUP:
                     spec = importlib.util.spec_from_file_location('run', self.modulesFolderPath / f'{module}/main.py')
                     moduleExec = importlib.util.module_from_spec(spec)
                     spec.loader.exec_module(moduleExec)
-                    moduleExec.run(self, **params)
+                    try:
+                        moduleExec.run(self, **params)
+                    except Exception as err:
+                        self.log(f'Ошибка в модуле {module} | {err}')
+                        raise err
 
 if __name__ == '__main__':
     lolzeAutoUpBot = lolzeAutoUP()
