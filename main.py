@@ -110,6 +110,50 @@ class lolzeAutoUP:
             raise lolzeAutoUPException(response['error'])
         return result
 
+    def getMarketPermissions (self) -> dict:
+        permissions = self.sendRequest("/me", typeRequest='request')['user']['permissions']['market']
+        result = { 
+            'stickItem': permissions['stickItem'],
+            'bumpItemCountInPeriod': permissions['bumpItemCountInPeriod'],
+            'bumpItemPeriod': permissions['bumpItemPeriod'],
+            'canBumpOwnItem': permissions['canBumpOwnItem'],
+            'hasAccessToMarket': permissions['hasAccessToMarket']
+        }
+        return result
+
+    def getOwnedAccounts (
+        self, 
+        shows: list = ['active', 'paid', 'deleted', 'awaiting'],
+        limitPagesInShow: int = 1, 
+        order_by: str = 'price_to_down'
+    ) -> dict: 
+        result = {}
+        for show in shows:
+            tempResult = []
+            page = 1
+            while True:
+                if limitPagesInShow > 0 and limitPagesInShow <= page - 1:
+                    break
+                acconuts = self.sendRequest(f'user//items?page={page}&show={show}&order_by={order_by}', typeRequest='request')['items']
+                if acconuts == []:
+                    break
+                page += 1
+                for account in acconuts:
+                    tempResult.append({'item_id':account['item_id'],
+                            'item_state': account['item_state'],
+                            'published_date': account['published_date'],
+                            'refreshed_date': account['refreshed_date'],
+                            'price': account['price'],
+                            'is_sticky': account['is_sticky'],
+                            'canStickItem': account['canStickItem'],
+                            'canUnstickItem': account['canUnstickItem'],
+                            'canUpdateItemStats': account['canUpdateItemStats'],
+                            'tags': account['tags']
+                        }
+                    )
+            result.update ({f'{show}':tempResult})
+        return result
+
     def run (self):
         while True:
             self.__loadConfig(self.configFilePath)
