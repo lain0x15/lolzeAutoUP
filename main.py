@@ -158,6 +158,7 @@ class lolzeAutoUP:
         while True:
             self.__loadConfig(self.configFilePath)
             for module in self.config['modules']:
+                self.__loadConfig(self.configFilePath)
                 if self.config['modules'][module].get('enabled', False):
                     params = self.config['modules'][module]['params']
                     spec = importlib.util.spec_from_file_location('run', self.modulesFolderPath / f'{module}/main.py')
