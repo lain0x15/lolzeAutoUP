@@ -162,4 +162,4 @@ cython_debug/
 #lolzeAutoUP
 config.json
 /.vs
-logs/*
+logs/lolze*
