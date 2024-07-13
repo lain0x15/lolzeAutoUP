@@ -1,4 +1,4 @@
-import re
+import re, jinja2
 from urllib import response
 
 def searchAcc (
@@ -34,6 +34,20 @@ def buyAcc (
     params = {'price':price, 'buy_without_validation':1} if buyWithoutValidation else {'price':price}
     return self.sendRequest(f'{item_id}/fast-buy', params=params, method='POST', typeRequest='request')
 
+def tagsAdd (self, tags, itemID):
+    userTagsID = self.sendRequest("/me", typeRequest='request')['user']['tags']
+    tmp = {}
+    [tmp.update({userTagsID[userTagID]['title']:userTagID}) for userTagID in userTagsID]
+    userTagsID = tmp
+    for addTag in tags:
+        tag_id = userTagsID.get(addTag, None)
+        if tag_id:
+            response = self.sendRequest(f'{itemID}/tag?tag_id={tag_id}', method='POST', typeRequest='request')
+            if error := response.get('errors'):
+                self.log (f'Не удалось добавить тэг к аккаунту https://lzt.market/{itemID}\n{error}', logLevel='info')
+        else:
+            self.log (f'Ну существует тега {addTag}. Данный тэг не будет добавлен к аккаунту', logLevel='info')
+
 def run (self, marketURLs, limitSumOfBalace=0, attemptsBuyAccount=3) -> None:
     if 'autoBuy' not in self.tmpVarsForModules:
         self.tmpVarsForModules.update ({'autoBuy':{'boughtError':[], 'boughtSuccess':[]}})
@@ -67,8 +81,14 @@ def run (self, marketURLs, limitSumOfBalace=0, attemptsBuyAccount=3) -> None:
                             title = url['autoSellOptions'].get('title', item['title'])
                             title_en = url['autoSellOptions'].get('title_en', item['title_en'])
                             price = url['autoSellOptions'].get('price', 99999)
+                            percent = url['autoSellOptions'].get('percent', 0)/100
                             tags = url['autoSellOptions'].get('tags', [])
                             
+                            title = jinja2.Template (title).render(item=item)
+                            title_en = jinja2.Template (title_en).render(item=item)
+                            price = int(jinja2.Template (str(price)).render(item=item))
+                            price = price + price * percent
+
                             category_id = item['category_id']
                             login = item['loginData']['login']
                             password = item['loginData']['password']
@@ -90,7 +110,8 @@ def run (self, marketURLs, limitSumOfBalace=0, attemptsBuyAccount=3) -> None:
                                 pathData=f"item/fast-sell?title={title}&title_en={title_en}&price={price}&currency={currency}b&item_origin=resale&category_id={category_id}",
                                 headersRewrite={'content-type': 'multipart/form-data; boundary=---011000010111000001101001'},
                                 payload=payload,
-                                method="POST"
+                                method="POST", 
+                                typeRequest='request'
                             )
                             
                             if error := response.get('errors'):
@@ -101,18 +122,7 @@ def run (self, marketURLs, limitSumOfBalace=0, attemptsBuyAccount=3) -> None:
                             self.log(f'Попытка выставления на продажу #{attempt + 1} неудачная. | {err}', logLevel='info')
 
                     if addTags := url['autoSellOptions'].get('tags', []):
-                        userTagsID = self.sendRequest("/me")['user']['tags']
-                        tmp = {}
-                        [tmp.update({userTagsID[userTagID]['title']:userTagID}) for userTagID in userTagsID]
-                        userTagsID = tmp
-                        for addTag in addTags:
-                            tag_id = userTagsID.get(addTag, None)
-                            if tag_id:
-                                response = self.sendRequest(f'{response["item"]["item_id"]}/tag?tag_id={tag_id}', method='POST')
-                                if error := response.get('errors'):
-                                    self.log (f'Не удалось добавить тэг к аккаунту https://lzt.market/{response["item"]["item_id"]}\n{error}', logLevel='info')
-                            else:
-                                self.log (f'Ну существует тега {addTag}. Данный тэг не будет добавлен к аккаунту', logLevel='info')
+                        tagsAdd (self, tags=addTags, itemID=response["item"]["item_id"])
             else:
                 self.log (f'Автобай нашел аккаунт, но не смог его купить https://lzt.market/{account["item_id"]}')
     return 0
