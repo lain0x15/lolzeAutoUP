@@ -23,13 +23,15 @@ class lolzeBotApi:
         method: str = 'GET',
         params: dict = {},
         headersRewrite = {},
+        searchRequest = False,
         payload = None
     ) -> dict:
         client = self.__clients.pop(0)
         try:
             lastSendRequest = client.get ('lastSendRequest', time.time())
-            if (t := time.time() - lastSendRequest) < 3:
-                time.sleep(3 - t)
+            delay = 3 if searchRequest else 0.5
+            if (t := time.time() - lastSendRequest) < delay:
+                time.sleep(delay - t)
             headers = {
                 "accept": "application/json",
                 "authorization": f"Bearer {client['token']}"
@@ -135,7 +137,7 @@ class lolzeBotApi:
         if not parse:
             raise TypeError("Format search URL is invalid")
         category, search_params = parse.groups()
-        return self.sendRequest(f'{category}/{search_params}')
+        return self.sendRequest(f'{category}/{search_params}', searchRequest=True)
 
     def bumpAccount (
         self, 
