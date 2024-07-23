@@ -3,10 +3,8 @@ import time
 def run (self, methodSticky: str) -> int:
     '''
         Закрепляет аккунты
-        self - класс lolzeAutoUP
         methodSticky - метод по которому будут выбираться аккаунты для закрепления
             доступные значения "price_to_up" - сначало дешёвые, "price_to_down" - сначало дорогие, "pdate_to_up" - Старые (по заливу)
-        возвращает время в которое его следует запустить в следующий раз
     '''
     if 'stick' not in self.tmpVarsForModules:
         self.tmpVarsForModules.update ({'stick':{}})
