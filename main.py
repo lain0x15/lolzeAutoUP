@@ -1,4 +1,4 @@
-import requests, json, logging, time, importlib
+import requests, json, logging, time, importlib, yaml
 from pathlib import Path
 from logging.handlers import RotatingFileHandler
 
@@ -8,7 +8,7 @@ class lolzeAutoUPException(Exception):
 class lolzeAutoUP:
     def __init__(self):
         self.baseFolder = Path(__file__).parent
-        self.configFilePath =  self.baseFolder / 'config.json'
+        self.configFilePath =  self.baseFolder / 'config.yaml'
         self.logFolderPath = self.baseFolder / 'logs'
         self.modulesFolderPath = self.baseFolder / 'modules'
         self.config = {}
@@ -30,7 +30,7 @@ class lolzeAutoUP:
             raise Exception (f'Не существует файла конфигурации {configFilePath}')
         self.log ('Загружаю данные из файла конфигурации', logLevel='debug')
         with open (configFilePath, encoding='utf-8-sig') as config:
-            tmpConfig = json.load(config)
+            tmpConfig = yaml.load(config, Loader=yaml.FullLoader)
             if sorted(tmpConfig.items()) != sorted(self.config.items()):
                 self.config = tmpConfig
                 self.log ('Конфигурация загружена успешно', logLevel='debug')
