@@ -1,4 +1,5 @@
-import requests, json, logging, time, importlib, yaml
+import requests, logging, time, importlib, yaml
+from schema import Schema, SchemaError, And, Or, Optional
 from pathlib import Path
 from logging.handlers import RotatingFileHandler
 
@@ -32,6 +33,8 @@ class lolzeAutoUP:
         with open (configFilePath, encoding='utf-8-sig') as config:
             tmpConfig = yaml.load(config, Loader=yaml.FullLoader)
             if sorted(tmpConfig.items()) != sorted(self.config.items()):
+                if not self.__checkConfig (tmpConfig):
+                    raise lolzeAutoUPException('Неправильный конфиг')
                 self.config = tmpConfig
                 self.log ('Конфигурация загружена успешно', logLevel='debug')
                 return {'status': 'changed'}
@@ -56,9 +59,28 @@ class lolzeAutoUP:
             print(msg)
         handler(msg)
 
-    def checkConfig (self, config):
-        raise lolzeAutoUPException('Неправильный конфиг')
-
+    def __checkConfig (self, config):
+        config_schema = Schema({
+            'lolze': {
+                'token': Or(str, error='Неправильное значение token в конфигурации'),
+                'proxy': dict,
+                'baseURLmarket': str,
+                'rateLimit': {
+                    'request': Or(int, float, error='Неправильное значение request в конфигурации'),
+                    'searchRequest': Or(int, float, error='Неправильное значение searchRequest в конфигурации')
+                }
+            },
+            Optional ('logs'): {
+                Optional('terminalLevels'): [Or('info', 'debug', 'error', error='Неправильное значения параметра terminalLevels в конфигурации')]
+            },
+            'modules': dict
+        })
+        try:
+            config_schema.validate (config)
+        except SchemaError as error:
+            raise error
+        return True
+        
     def sendRequest (
         self, 
         pathData: str, 
@@ -163,7 +185,11 @@ class lolzeAutoUP:
 
     def run (self):
         while True:
-            self.__loadConfig(self.configFilePath)
+            try:
+                self.__loadConfig(self.configFilePath)
+            except Exception as err:
+                self.log(err)
+                continue
             for module in self.config['modules']:
                 self.__loadConfig(self.configFilePath)
                 if self.config['modules'][module].get('enabled', False):
