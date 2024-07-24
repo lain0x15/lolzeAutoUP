@@ -46,11 +46,18 @@ class lolzeAutoUP:
             'error': lambda msg: logging.error(msg),
         }
         allowedLoglevels = [*handlers.keys()]
+
         handler = handlers.get(logLevel, lolzeAutoUPException (f'Ошибка в функции log, неправильно задан logLevel. Значение {logLevel}, допустимые значения {allowedLoglevels}'))
         if isinstance(handler, Exception):
             raise handler
-        print(msg)
+
+        terminalLevels = self.config.get('logs', {}).get('terminalLevels', allowedLoglevels)
+        if logLevel in terminalLevels:
+            print(msg)
         handler(msg)
+
+    def checkConfig (self, config):
+        raise lolzeAutoUPException('Неправильный конфиг')
 
     def sendRequest (
         self, 
