@@ -75,10 +75,19 @@ class lolzeAutoUP:
             },
             'modules': dict
         })
+        module_config_schema = Schema ({
+            Optional('enabled'): bool,
+            'params': dict
+        })
         try:
             config_schema.validate (config)
         except SchemaError as error:
             raise error
+        for module in config['modules']:
+            try:           
+                module_config_schema.validate(config['modules'][module])
+            except SchemaError as error:
+                raise Exception(f'Ошибка в конфигурационном файле в разделе модуля {module} | {error}')
         return True
         
     def sendRequest (
