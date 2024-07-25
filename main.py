@@ -93,7 +93,6 @@ class lolzeAutoUP:
         for module in config['modules']:
             try:
                 module_config_schema.validate(config['modules'][module])
-
                 configSchemaPath = self.modulesFolderPath / f'{module}/configSchema.py'
                 if configSchemaPath.is_file():
                     self.log (f'Файл configSchema.py для модуля {module} существует', logLevel='debug')
@@ -101,6 +100,8 @@ class lolzeAutoUP:
                     configSchema = importlib.util.module_from_spec(spec)
                     spec.loader.exec_module(configSchema)
                     configSchema.configSchema.validate(config['modules'][module]['params'])
+                else:
+                    self.log (f'Не существует файл configSchema.py для модуля {module}. Проверка параметров для данного модуля осуществятся не будет', logLevel='debug')
             except SchemaError as error:
                 raise Exception(f'Ошибка в конфигурационном файле в разделе модуля {module} | {error}')
         return True
