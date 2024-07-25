@@ -57,10 +57,15 @@ class lolzeAutoUP:
         terminalLevels = self.config.get('logs', {}).get('terminalLevels', allowedLoglevels)
         if logLevel in terminalLevels:
             print(msg)
+
+        telegramLevels = self.config.get('logs', {}).get('telegramLevels', allowedLoglevels)
+        if logLevel in telegramLevels:
+            pass
         handler(msg)
 
     def __checkConfig (self, config):
         config_schema = Schema({
+            Optional('debug'): bool,
             'lolze': {
                 'token': Or(str, error='Неправильное значение token в конфигурации'),
                 'proxy': dict,
@@ -71,7 +76,8 @@ class lolzeAutoUP:
                 }
             },
             Optional ('logs'): {
-                Optional('terminalLevels'): [Or('info', 'debug', 'error', error='Неправильное значения параметра terminalLevels в конфигурации')]
+                Optional('terminalLevels'): [Or('info', 'debug', 'error', error='Неправильное значения параметра terminalLevels в конфигурации')],
+                Optional('telegramLevels'): [Or('info', 'debug', 'error', error='Неправильное значения параметра telegramLevels в конфигурации')]
             },
             'modules': dict
         })
@@ -210,7 +216,8 @@ class lolzeAutoUP:
                         moduleExec.run(self, **params)
                     except Exception as err:
                         self.log(f'Ошибка в модуле {module} | {err}')
-                        raise err
+                        if self.config.get('debug', False):
+                            raise err
 
 if __name__ == '__main__':
     lolzeAutoUpBot = lolzeAutoUP()
