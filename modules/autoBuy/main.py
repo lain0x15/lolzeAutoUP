@@ -134,7 +134,7 @@ def sellAcc (self, item_id, autoSellOptions):
         tagsAdd (self, tags=addTags, itemID=response["item"]["item_id"])
     return True
 
-def run (self, marketURLs, limitSumOfBalace=0, attemptsBuyAccount=3, buyWithoutValidation=False) -> None:
+def run (self, marketURLs, limitSumOfBalace=0, attemptsBuyAccount=3) -> None:
     if 'autoBuy' not in self.tmpVarsForModules:
         self.tmpVarsForModules.update ({'autoBuy':{'boughtError':[], 'boughtSuccess':[]}})
     self.log('Автоматическая покупка запущена')
@@ -145,7 +145,7 @@ def run (self, marketURLs, limitSumOfBalace=0, attemptsBuyAccount=3, buyWithoutV
             if not checkCanIbuyAcc (self, account=account, limitSumOfBalace=limitSumOfBalace, attemptsBuyAccount=attemptsBuyAccount):
                 addErrorBought(self, account)
                 continue
-            res = buyAcc(self, item_id=account['item_id'], price=account['price'], buyWithoutValidation=buyWithoutValidation)
+            res = buyAcc(self, item_id=account['item_id'], price=account['price'], buyWithoutValidation=url.get('buyWithoutValidation', False))
             if error := res.get('errors'):
                 self.log (f'Не удалось купить аккаунт https://lzt.market/{account["item_id"]}\n{error}', logLevel='info')
                 addErrorBought(self, account)
