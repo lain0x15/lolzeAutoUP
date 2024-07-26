@@ -17,11 +17,11 @@ logs:
   - error
 modules:
   bump:
-    enabled: false
+    enabled: true
     params:
       methodBump: pdate_to_up
   stick:
-    enabled: false
+    enabled: true
     params:
       methodSticky: price_to_down
   autoUpdateInfo:
