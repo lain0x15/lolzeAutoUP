@@ -224,7 +224,7 @@ class lolzeAutoUP:
             try:
                 self.__loadConfig(self.configFilePath)
             except Exception as err:
-                self.log(err)
+                self.log(err, logLevel='error')
                 continue
             for module in self.config['modules']:
                 self.__loadConfig(self.configFilePath)
