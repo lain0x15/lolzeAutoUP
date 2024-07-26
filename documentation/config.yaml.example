@@ -1,0 +1,54 @@
+---
+debug: false
+lolze:
+  token: eyAAAAAAAAAAAASSSSSSSSSSSSSSSSSSSSS.eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeasdasdasdas.saaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaASDASD
+  proxy: {}
+  baseURLmarket: https://api.lzt.market/
+  rateLimit:
+    request: 0.5
+    searchRequest: 3
+telegram:
+  token: 12434546:dfgsfdgfdsgsfgrest
+  userID: 12454643
+logs:
+  terminalLevels:
+  - info
+  - debug
+  - error
+  telegramLevels:
+  - info
+  - error
+modules:
+  bump:
+    enabled: true
+    params:
+      methodBump: pdate_to_up
+  stick:
+    enabled: true
+    params:
+      methodSticky: price_to_down
+  autoUpdateInfo:
+    enabled: false
+    params:
+      tag: autoUpdateInfo
+      periodInSeconds: 3600
+  autoBuy:
+    enabled: false
+    params:
+      limitSumOfBalace: 0
+      attemptsBuyAccount: 3
+      marketURLs:
+      - url: https://lzt.market/valorant/?pmax=5
+        buyWithoutValidation: false
+        autoSellOptions:
+          enabled: true
+          title: valorant
+          title_en: valorant
+          price: 5
+          percent: 20
+          attemptsSell: 4
+          tags:
+          - autoUpdateInfo
+      - url: https://lzt.market/valorant/?pmax=10
+        buyWithoutValidation: false
+      - url: https://lzt.market/valorant/?pmax=15
