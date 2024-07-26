@@ -1,4 +1,5 @@
-﻿---
+﻿```
+---
 debug: false        | Запуск бота в режиме тестирования | возможные параметры true/false
 lolze:
   token: eyAAAAAAAAAAAASSSSSSSSSSSSSSSSSSSSS.eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeasdasdasdas.saaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaASDASD   | Токен от lzt.market
@@ -47,3 +48,4 @@ modules:
           attemptsSell: 4           | Кол-во попыток продать аккаунт
           tags:                     | Теги которые добавить к выставленному на продажу аккаунту (теги должны быть созданы заранее)
           - autoUpdateInfo
+```
