@@ -36,7 +36,7 @@ modules:
       attemptsBuyAccount: 3
       marketURLs:
       - url: https://lzt.market/valorant/?pmax=5
-      buyWithoutValidation: false
+        buyWithoutValidation: false
         autoSellOptions:
           enabled: true
           title: valorant
