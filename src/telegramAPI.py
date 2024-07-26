@@ -27,7 +27,7 @@ class TelegramAPI:
             method=request_method,
         )
         context = _get_disable_ssl()
-        with request.urlopen(api_request, context=context) as response_object:
+        with request.urlopen(api_request, context=context, timeout=10) as response_object:
             response = json.load(response_object)
             return response
 
