@@ -7,6 +7,9 @@ lolze:
   rateLimit:
     request: 0.5
     searchRequest: 3
+telegram:
+  token: 12434546:dfgsfdgfdsgsfgrest
+  userID: 12454643
 logs:
   terminalLevels:
   - info
