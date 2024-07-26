@@ -36,8 +36,7 @@ class lolzeAutoUP:
         with open (configFilePath, encoding='utf-8-sig') as config:
             tmpConfig = yaml.load(config, Loader=yaml.FullLoader)
             if sorted(tmpConfig.items()) != sorted(self.config.items()):
-                if not self.__checkConfig (tmpConfig):
-                    raise lolzeAutoUPException('Неправильный конфиг')
+                self.__checkConfig (tmpConfig)
                 self.config = tmpConfig
                 self.log ('Конфигурация загружена успешно', logLevel='debug')
                 return {'status': 'changed'}
