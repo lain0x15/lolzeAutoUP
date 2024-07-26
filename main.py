@@ -130,9 +130,7 @@ class lolzeAutoUP:
         proxy = self.config['lolze']['proxy']
         baseURLmarket = self.config['lolze']['baseURLmarket']
         
-        if typeRequest == 'searchRequest':
-            rateLimit = self.config['lolze']['rateLimit'][typeRequest]
-        elif typeRequest  == 'request':
+        if typeRequest in ['searchRequest', 'request']:
             rateLimit = self.config['lolze']['rateLimit'][typeRequest]
         else:
             raise lolzeAutoUPException(f'Ошибка в функции sendRequest. Неправильно указан typeRequest. Значение {typeRequest}')
