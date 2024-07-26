@@ -87,7 +87,7 @@ def sellAcc (self, item_id, autoSellOptions):
 
             title = autoSellOptions.get('title', item['title'])
             title_en = autoSellOptions.get('title_en', item['title_en'])
-            price = autoSellOptions.get('price', 99999)
+            price = autoSellOptions.get('price', item['price'])
             percent = autoSellOptions.get('percent', 0)/100
             tags = autoSellOptions.get('tags', [])
 

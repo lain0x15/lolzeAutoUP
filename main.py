@@ -55,6 +55,7 @@ class lolzeAutoUP:
         handler = handlers.get(logLevel, lolzeAutoUPException (f'Ошибка в функции log, неправильно задан logLevel. Значение {logLevel}, допустимые значения {allowedLoglevels}'))
         if isinstance(handler, Exception):
             raise handler
+        handler(msg)
 
         terminalLevels = self.config.get('logs', {}).get('terminalLevels', allowedLoglevels)
         if logLevel in terminalLevels:
@@ -64,11 +65,10 @@ class lolzeAutoUP:
         if self.config.get('telegram', False) and logLevel in telegramLevels:
             telegramApi = TelegramAPI(self.config['telegram']['token'])
             try:
-                telegramApi.send_message(f'{logLevel} | {msg}', self.config['telegram']['userID'])
+                telegramApi.send_message(f'{logLevel} | {time.ctime()} | {msg}', self.config['telegram']['userID'])
             except Exception as err:
                 print(f'Ошибка при логировании в телеграм | {err}')
-        handler(msg)
-
+        
     def __checkConfig (self, config):
         config_schema = Schema({
             Optional('debug'): bool,

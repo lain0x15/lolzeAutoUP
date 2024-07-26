@@ -53,7 +53,7 @@ def run (self, methodBump) -> None:
                     break
         else:
             nextBumpDate = datetime.datetime.fromtimestamp(3600 + time.time() ).strftime('%d-%m-%Y %H:%M:%S')
-            self.log (f'Осталось поднятий: {countAvailableBumps}\nНет аккаунтов для поднятия. Следующая попытка поднятия {nextBumpDate}', logLevel='info')
+            self.log (f'Осталось поднятий: {countAvailableBumps} | Нет аккаунтов для поднятия. Следующая попытка поднятия {nextBumpDate}', logLevel='info')
             self.tmpVarsForModules['bump'].update ({'nextRun': time.time() + 3600})
             return 0
         return 0
