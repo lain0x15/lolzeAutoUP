@@ -2,6 +2,8 @@ import requests, logging, time, importlib, yaml
 from schema import Schema, SchemaError, And, Or, Optional
 from pathlib import Path
 from logging.handlers import RotatingFileHandler
+from src.telegramAPI import TelegramAPI
+
 
 class lolzeAutoUPException(Exception):
     pass
@@ -59,8 +61,9 @@ class lolzeAutoUP:
             print(msg)
 
         telegramLevels = self.config.get('logs', {}).get('telegramLevels', allowedLoglevels)
-        if logLevel in telegramLevels:
-            pass
+        if self.config.get('telegram', False) and logLevel in telegramLevels:
+            telegramApi = TelegramAPI(self.config['telegram']['token'])
+            telegramApi.send_message(msg, self.config['telegram']['userID'])
         handler(msg)
 
     def __checkConfig (self, config):
@@ -74,6 +77,10 @@ class lolzeAutoUP:
                     'request': Or(int, float, error='Неправильное значение request в конфигурации'),
                     'searchRequest': Or(int, float, error='Неправильное значение searchRequest в конфигурации')
                 }
+            },
+            Optional ('telegram'): {
+                'token': str,
+                'userID': Or(int, str)
             },
             Optional ('logs'): {
                 Optional('terminalLevels'): [Or('info', 'debug', 'error', error='Неправильное значения параметра terminalLevels в конфигурации')],
