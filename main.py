@@ -3,6 +3,7 @@ from schema import Schema, SchemaError, And, Or, Optional
 from pathlib import Path
 from logging.handlers import RotatingFileHandler
 from src.telegramAPI import TelegramAPI
+from time import ctime
 
 
 class lolzeAutoUPException(Exception):
@@ -58,12 +59,15 @@ class lolzeAutoUP:
 
         terminalLevels = self.config.get('logs', {}).get('terminalLevels', allowedLoglevels)
         if logLevel in terminalLevels:
-            print(msg)
+            print(f'{logLevel} | {time.ctime()} | {msg}')
 
         telegramLevels = self.config.get('logs', {}).get('telegramLevels', allowedLoglevels)
         if self.config.get('telegram', False) and logLevel in telegramLevels:
             telegramApi = TelegramAPI(self.config['telegram']['token'])
-            telegramApi.send_message(msg, self.config['telegram']['userID'])
+            try:
+                telegramApi.send_message(f'{logLevel} | {msg}', self.config['telegram']['userID'])
+            except Exception as err:
+                print(f'Ошибка при логировании в телеграм | {err}')
         handler(msg)
 
     def __checkConfig (self, config):
@@ -232,7 +236,7 @@ class lolzeAutoUP:
                     try:
                         moduleExec.run(self, **params)
                     except Exception as err:
-                        self.log(f'Ошибка в модуле {module} | {err}')
+                        self.log(f'Ошибка в модуле {module} | {err}', logLevel='error')
                         if self.config.get('debug', False):
                             raise err
 
