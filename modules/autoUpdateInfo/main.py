@@ -13,7 +13,7 @@ def run (self, tag, periodInSeconds):
                 tagId = tagID
                 break
         else:
-            self.log (f'Тег {tag} не существует, обновление информации об аккаунтах завершено с ошибкой', logLevel='info')
+            self.log (f'Тег {tag} не существует, обновление информации об аккаунтах завершено с ошибкой', logLevel='error')
             tagId = -1
         accountsForUpdateInfo = [account for account in accounts if tagId in account['tags'] and account['canUpdateItemStats']]
         for account in accountsForUpdateInfo:
