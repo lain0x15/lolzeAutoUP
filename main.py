@@ -225,6 +225,7 @@ class lolzeAutoUP:
                 self.__loadConfig(self.configFilePath)
             except Exception as err:
                 self.log(err, logLevel='error')
+                time.sleep(4)
                 continue
             for module in self.config['modules']:
                 self.__loadConfig(self.configFilePath)
@@ -239,6 +240,7 @@ class lolzeAutoUP:
                         self.log(f'Ошибка в модуле {module} | {err}', logLevel='error')
                         if self.config.get('debug', False):
                             raise err
+                        time.sleep(4)
 
 if __name__ == '__main__':
     lolzeAutoUpBot = lolzeAutoUP()
