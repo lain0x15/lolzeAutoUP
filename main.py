@@ -170,9 +170,9 @@ class lolzeAutoUP:
             raise result
             
         if result.get('error') in ['invalid_token']:
-            raise lolzeAutoUPException(response['error'])
+            raise lolzeAutoUPException(result['error'])
         elif 'Технические работы. Маркет временно недоступен.' in result.get('errors', []):
-            raise lolzeAutoUPException (response['errors'])
+            raise lolzeAutoUPException (result['errors'])
         return result
 
     def getMarketPermissions (self) -> dict:
