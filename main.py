@@ -152,7 +152,8 @@ class lolzeAutoUP:
             200: lambda response: response.json(),
             400: lambda response: Exception(f'Сайт выдал ошибку {response.status_code}\nпри запросе к ссылке {url}\n{response.content.decode("unicode-escape")}'),
             403: lambda response: response.json(),
-            429: lambda response: Exception(f'Слишком много запросов к api сайта. Сайт выдал ошибку {response.status_code}')
+            429: lambda response: Exception(f'Слишком много запросов к api сайта. Сайт выдал ошибку {response.status_code}'),
+            'default': lambda response: Exception(f'Сайт выдал ошибку {response.status_code}')
         }
         if method not in methods:
             raise Exception(f'Неправильный метод {method}, ожидается GET, POST, DELETE')
@@ -162,7 +163,7 @@ class lolzeAutoUP:
         finally:
             self.lastReques[typeRequest] = time.time()
 
-        handler = handlers.get(response.status_code, lambda response: Exception(f'Сайт выдал ошибку {response.status_code}'))
+        handler = handlers.get(response.status_code, handlers['default'])
         result = handler(response)
 
         if isinstance(result, Exception):
