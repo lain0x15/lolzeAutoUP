@@ -157,13 +157,13 @@ class lolzeAutoUP:
         if method not in methods:
             raise Exception(f'Неправильный метод {method}, ожидается GET, POST, DELETE')
             
-        response = methods[method](url, params=params, headers=headers, timeout=(10, 600), proxies=proxy, data=payload)
-        handler = handlers.get(response.status_code, lambda response: Exception(f'Сайт выдал ошибку {response.status_code}'))
-        
         try:
-            result = handler(response)
+            response = methods[method](url, params=params, headers=headers, timeout=(10, 600), proxies=proxy, data=payload)
         finally:
             self.lastReques[typeRequest] = time.time()
+
+        handler = handlers.get(response.status_code, lambda response: Exception(f'Сайт выдал ошибку {response.status_code}'))
+        result = handler(response)
 
         if isinstance(result, Exception):
             raise result
