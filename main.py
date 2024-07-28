@@ -16,9 +16,9 @@ class lolzeAutoUP:
         self.logFolderPath = self.baseFolder / 'logs'
         self.modulesFolderPath = self.baseFolder / 'modules'
         self.config = {}
-        self.lastReques = {
-            'request': time.time(),
-            'searchRequest': time.time()
+        self.requestsDelay = {
+            'lastRequest': time.time(),
+            'nextPossibleRequest': time.time()
         }
         self.tmpVarsForModules = {}
         handler = RotatingFileHandler(filename=self.logFolderPath / 'lolzeAutoUP.log', mode='a+', maxBytes=50*1024*1024, 
@@ -135,8 +135,9 @@ class lolzeAutoUP:
         else:
             raise lolzeAutoUPException(f'Ошибка в функции sendRequest. Неправильно указан typeRequest. Значение {typeRequest}')
             
-        if (t := time.time() -  self.lastReques[typeRequest]) < rateLimit:
-            time.sleep(rateLimit - t)
+        if (delay := self.requestsDelay['nextPossibleRequest'] - time.time()) > 0:
+            time.sleep(delay)
+
         headers = {
             "accept": "application/json",
             "authorization": f"Bearer {token}"
@@ -162,7 +163,8 @@ class lolzeAutoUP:
         try:
             response = methods[method](url, params=params, headers=headers, timeout=(10, 600), proxies=proxy, data=payload)
         finally:
-            self.lastReques[typeRequest] = time.time()
+            self.requestsDelay['lastRequest'] = time.time()
+            self.requestsDelay['nextPossibleRequest'] = self.requestsDelay['lastRequest'] + rateLimit
 
         handler = handlers.get(response.status_code, handlers['default'])
         result = handler(response)
