@@ -16,9 +16,9 @@ class lolzeAutoUP:
         self.logFolderPath = self.baseFolder / 'logs'
         self.modulesFolderPath = self.baseFolder / 'modules'
         self.config = {}
-        self.lastReques = {
-            'request': time.time(),
-            'searchRequest': time.time()
+        self.requestsDelay = {
+            'lastRequest': time.time(),
+            'nextPossibleRequest': time.time()
         }
         self.tmpVarsForModules = {}
         handler = RotatingFileHandler(filename=self.logFolderPath / 'lolzeAutoUP.log', mode='a+', maxBytes=50*1024*1024, 
@@ -135,8 +135,9 @@ class lolzeAutoUP:
         else:
             raise lolzeAutoUPException(f'Ошибка в функции sendRequest. Неправильно указан typeRequest. Значение {typeRequest}')
             
-        if (t := time.time() -  self.lastReques[typeRequest]) < rateLimit:
-            time.sleep(rateLimit - t)
+        if (delay := self.requestsDelay['nextPossibleRequest'] - time.time()) > 0:
+            time.sleep(delay)
+
         headers = {
             "accept": "application/json",
             "authorization": f"Bearer {token}"
@@ -152,24 +153,29 @@ class lolzeAutoUP:
             200: lambda response: response.json(),
             400: lambda response: Exception(f'Сайт выдал ошибку {response.status_code}\nпри запросе к ссылке {url}\n{response.content.decode("unicode-escape")}'),
             403: lambda response: response.json(),
-            429: lambda response: Exception(f'Слишком много запросов к api сайта. Сайт выдал ошибку {response.status_code}')
+            404: lambda response: Exception(f'Сайт выдал ошибку {response.status_code} при запросе к ссылке {url}'),
+            429: lambda response: Exception(f'Слишком много запросов к api сайта. Сайт выдал ошибку {response.status_code}'),
+            'default': lambda response: Exception(f'Сайт выдал ошибку {response.status_code} при запросе к ссылке {url}')
         }
         if method not in methods:
             raise Exception(f'Неправильный метод {method}, ожидается GET, POST, DELETE')
             
-        response = methods[method](url, params=params, headers=headers, timeout=(10, 600), proxies=proxy, data=payload)
-        handler = handlers.get(response.status_code, lambda response: Exception(f'Сайт выдал ошибку {response.status_code}'))
-        
         try:
-            result = handler(response)
+            response = methods[method](url, params=params, headers=headers, timeout=(10, 600), proxies=proxy, data=payload)
         finally:
-            self.lastReques[typeRequest] = time.time()
+            self.requestsDelay['lastRequest'] = time.time()
+            self.requestsDelay['nextPossibleRequest'] = self.requestsDelay['lastRequest'] + rateLimit
+
+        handler = handlers.get(response.status_code, handlers['default'])
+        result = handler(response)
 
         if isinstance(result, Exception):
             raise result
             
         if result.get('error') in ['invalid_token']:
-            raise lolzeAutoUPException(response['error'])
+            raise lolzeAutoUPException(result['error'])
+        elif 'Технические работы. Маркет временно недоступен.' in result.get('errors', []):
+            raise lolzeAutoUPException (result['errors'])
         return result
 
     def getMarketPermissions (self) -> dict:
@@ -222,6 +228,7 @@ class lolzeAutoUP:
                 self.__loadConfig(self.configFilePath)
             except Exception as err:
                 self.log(err, logLevel='error')
+                time.sleep(4)
                 continue
             for module in self.config['modules']:
                 self.__loadConfig(self.configFilePath)
@@ -236,6 +243,7 @@ class lolzeAutoUP:
                         self.log(f'Ошибка в модуле {module} | {err}', logLevel='error')
                         if self.config.get('debug', False):
                             raise err
+                        time.sleep(4)
 
 if __name__ == '__main__':
     lolzeAutoUpBot = lolzeAutoUP()
