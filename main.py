@@ -161,7 +161,7 @@ class lolzeAutoUP:
             raise Exception(f'Неправильный метод {method}, ожидается GET, POST, DELETE')
             
         try:
-            response = methods[method](url, params=params, headers=headers, timeout=(10, 600), proxies=proxy, data=payload)
+            response = methods[method](url, params=params, headers=headers, timeout=(30, 600), proxies=proxy, data=payload)
         finally:
             self.requestsDelay['lastRequest'] = time.time()
             self.requestsDelay['nextPossibleRequest'] = self.requestsDelay['lastRequest'] + rateLimit
