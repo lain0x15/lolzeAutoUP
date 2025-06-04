@@ -14,8 +14,12 @@ def searchAcc (self, url):
 
 def run (self, marketURLs) -> None:
     self.log('Автоматическое оповещение запущено')
+    res = []
     for url in marketURLs:
         accounts = searchAcc(self, url=url['url'])
-        for acc in range(11):
-            print(acc)
         self.log(f'Аккаунтов найдено {accounts["totalItems"]} по ссылке {url["url"]}')
+        for item in accounts['items']:
+            for transaction in item.get('fortniteTransactions'):
+                if transaction['title'] in url['searchTransactionsTitle']:
+                    res.append(f'https://lzt.market/{item["item_id"]}')
+    self.log(res, logLevel='info')
