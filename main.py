@@ -174,6 +174,8 @@ class lolzeAutoUP:
             
         if result.get('error') in ['invalid_token']:
             raise lolzeAutoUPException(result['error'])
+        if result.get('errors'):
+            raise lolzeAutoUPException(result['errors'])
         elif 'Технические работы. Маркет временно недоступен.' in result.get('errors', []):
             raise lolzeAutoUPException (result['errors'])
         return result
