@@ -32,6 +32,14 @@ modules:
     params:
       tag: autoUpdateInfo
       periodInSeconds: 3600
+  autoNotice:
+    enabled: true
+    params:
+      pagesPerUrl: 5,
+      marketURLs:
+        - url: https://lzt.market/fortnite/?pmin=200&pmax=300
+          searchTransactionsTitle:
+            - Rogue Company
   autoBuy:
     enabled: false
     params:
