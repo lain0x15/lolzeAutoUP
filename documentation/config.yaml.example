@@ -35,6 +35,7 @@ modules:
   autoNotice:
     enabled: true
     params:
+      pagePerUrl: 5,
       marketURLs:
         - url: https://lzt.market/fortnite/?pmin=200&pmax=300
           searchTransactionsTitle:

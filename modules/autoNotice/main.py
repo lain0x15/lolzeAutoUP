@@ -12,7 +12,7 @@ def searchAcc (self, url):
     category, search_params = parse.groups()
     return self.sendRequest(f'{category}/{search_params}', typeRequest='searchRequest')
 
-def run (self, marketURLs) -> None:
+def run (self, marketURLs, pagePerUrl) -> None:
     self.log('Автоматическое оповещение запущено')
     for url in marketURLs:
         page = 1
@@ -28,5 +28,7 @@ def run (self, marketURLs) -> None:
             if res:
                 self.log(f'По ссылке {url["url"]}&page={page} найдены\n{res}', logLevel='info')
             if accounts['totalItems'] <= accounts['perPage'] * page:
+                break
+            elif pagePerUrl >= page:
                 break
             page = page + 1
