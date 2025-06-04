@@ -14,12 +14,19 @@ def searchAcc (self, url):
 
 def run (self, marketURLs) -> None:
     self.log('Автоматическое оповещение запущено')
-    res = []
     for url in marketURLs:
-        accounts = searchAcc(self, url=url['url'])
-        self.log(f'Аккаунтов найдено {accounts["totalItems"]} по ссылке {url["url"]}')
-        for item in accounts['items']:
-            for transaction in item.get('fortniteTransactions'):
-                if transaction['title'] in url['searchTransactionsTitle']:
-                    res.append(f'https://lzt.market/{item["item_id"]}')
-    self.log(res, logLevel='info')
+        page = 1
+        while True:
+            res = []
+            accounts = searchAcc(self, url=url['url'] + f'&page={page}')
+            self.log(f'Аккаунтов найдено {accounts["totalItems"]} по ссылке {url["url"]}'+ f'&page={page}')
+            for item in accounts['items']:
+                for transaction in item.get('fortniteTransactions'):
+                    if transaction['title'] in url['searchTransactionsTitle']:
+                        res.append(f'https://lzt.market/{item["item_id"]}')
+                        break
+            if res:
+                self.log(f'По ссылке {url["url"]}&page={page} найдены\n{res}', logLevel='info')
+            if accounts['totalItems'] <= accounts['perPage'] * page:
+                break
+            page = page + 1
