@@ -13,6 +13,8 @@ def searchAcc (self, url):
     return self.sendRequest(f'{category}/{search_params}', typeRequest='searchRequest')
 
 def run (self, marketURLs, pagesPerUrl) -> None:
+    if 'autoNotice' not in self.tmpVarsForModules:
+        self.tmpVarsForModules.update ({'autoNotice':{'exclude': []}})
     self.log('Автоматическое оповещение запущено')
     for url in marketURLs:
         page = 1
@@ -23,7 +25,11 @@ def run (self, marketURLs, pagesPerUrl) -> None:
             for item in accounts['items']:
                 for transaction in item.get('fortniteTransactions'):
                     if transaction['title'] in url['searchTransactionsTitle']:
-                        res.append(f'https://lzt.market/{item["item_id"]}')
+                        if item["item_id"] not in self.tmpVarsForModules['autoNotice']['exclude']:
+                            if len(self.tmpVarsForModules['autoNotice']['exclude']) >= 10000:
+                                self.tmpVarsForModules['autoNotice']['exclude'].pop(0)
+                            self.tmpVarsForModules['autoNotice']['exclude'].append(item["item_id"])
+                            res.append(f'https://lzt.market/{item["item_id"]}')
                         break
             if res:
                 self.log(f'По ссылке {url["url"]}&page={page} найдены\n{res}', logLevel='info')
