@@ -1,5 +1,6 @@
-import re, jinja2
+import re, yaml
 from urllib import response
+from datetime import datetime
 
 def searchAcc (self, url):
     '''
@@ -12,7 +13,7 @@ def searchAcc (self, url):
     category, search_params = parse.groups()
     return self.sendRequest(f'{category}/{search_params}', typeRequest='searchRequest')
 
-def run (self, marketURLs, pagesPerUrl) -> None:
+def run (self, marketURLs, pagesPerUrl, save_in_file=False) -> None:
     if 'autoNotice' not in self.tmpVarsForModules:
         self.tmpVarsForModules.update ({'autoNotice':{'exclude': []}})
     self.log('Автоматическое оповещение запущено')
@@ -30,6 +31,23 @@ def run (self, marketURLs, pagesPerUrl) -> None:
                                 self.tmpVarsForModules['autoNotice']['exclude'].pop(0)
                             self.tmpVarsForModules['autoNotice']['exclude'].append(item["item_id"])
                             res.append(f'https://lzt.market/{item["item_id"]}')
+                            if save_in_file:
+                                try:
+                                    with open(self.logFolderPath / 'autoNotice.yml', encoding='utf-8') as file:
+                                        data = yaml.safe_load(file)
+                                    if data == None:
+                                        data = {}
+                                except FileNotFoundError:
+                                    data = {}
+                                with open(self.logFolderPath / 'autoNotice.yml', "w", encoding='utf-8') as file:
+                                    data.update({
+                                        item["item_id"]:{
+                                            '0_url': f'https://lzt.market/{item["item_id"]}',
+                                            '1_transaction': [it['title'] for it in item.get('fortniteTransactions')],
+                                            '3_add_date': datetime.now()
+                                        }
+                                    })
+                                    yaml.dump(data, file, default_flow_style=False, allow_unicode=True)
                         break
             if res:
                 self.log(f'По ссылке {url["url"]}&page={page} найдены\n{res}', logLevel='info')

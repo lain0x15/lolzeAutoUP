@@ -36,6 +36,7 @@ modules:
     enabled: true
     params:
       pagesPerUrl: 5
+      save_in_file: false
       marketURLs:
         - url: https://lzt.market/fortnite/?pmin=200&pmax=300
           searchTransactionsTitle:
