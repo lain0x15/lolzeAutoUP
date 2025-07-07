@@ -27,7 +27,7 @@ def run (self, marketURLs, pagesPerUrl, save_in_file=False, retry_page_count=1) 
                 retry = 0
             except Exception as err:
                 retry += 1
-                self.log(f'{err} | Осталось попыток {retry_page_count - retry}')
+                self.log(f'{err} | Осталось попыток {retry_page_count - retry}', logLevel='error')
                 if retry >= retry_page_count:
                     raise err
                 continue
