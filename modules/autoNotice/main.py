@@ -13,15 +13,24 @@ def searchAcc (self, url):
     category, search_params = parse.groups()
     return self.sendRequest(f'{category}/{search_params}', typeRequest='searchRequest')
 
-def run (self, marketURLs, pagesPerUrl, save_in_file=False) -> None:
+def run (self, marketURLs, pagesPerUrl, save_in_file=False, retry_page_count=1) -> None:
     if 'autoNotice' not in self.tmpVarsForModules:
         self.tmpVarsForModules.update ({'autoNotice':{'exclude': []}})
     self.log('Автоматическое оповещение запущено')
     for url in marketURLs:
         page = 1
+        retry = 0
         while True:
             res = []
-            accounts = searchAcc(self, url=url['url'] + f'&page={page}')
+            try:
+                accounts = searchAcc(self, url=url['url'] + f'&page={page}')
+                retry = 0
+            except Exception as err:
+                retry += 1
+                self.log(f'Ошибка. Осталось попыток {retry_page_count - retry}\n{err}')
+                if retry >= retry_page_count:
+                    raise err
+                continue
             self.log(f'Аккаунтов найдено {accounts["totalItems"]} по ссылке {url["url"]}'+ f'&page={page}')
             for item in accounts['items']:
                 for transaction in item.get('fortniteTransactions'):
