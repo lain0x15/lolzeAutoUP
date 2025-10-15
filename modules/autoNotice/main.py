@@ -13,6 +13,15 @@ def searchAcc (self, url):
     category, search_params = parse.groups()
     return self.sendRequest(f'{category}/{search_params}', typeRequest='searchRequest')
 
+def buyAcc (
+        self,
+        item_id: int,
+        price: int,
+        buyWithoutValidation = False
+) -> dict:
+    params = {'price':price, 'buy_without_validation':1} if buyWithoutValidation else {'price':price}
+    return self.sendRequest(f'{item_id}/fast-buy', params=params, method='POST', typeRequest='request')
+
 def run (self, marketURLs, pagesPerUrl, save_in_file=False, retry_page_count=1) -> None:
     if 'autoNotice' not in self.tmpVarsForModules:
         self.tmpVarsForModules.update ({'autoNotice':{'exclude': []}})
@@ -47,6 +56,9 @@ def run (self, marketURLs, pagesPerUrl, save_in_file=False, retry_page_count=1) 
                                 self.tmpVarsForModules['autoNotice']['exclude'].pop(0)
                             self.tmpVarsForModules['autoNotice']['exclude'].append(item["item_id"])
                             res.append(f'https://lzt.market/{item["item_id"]}')
+                            if url.get('enableBuy', False):
+                                buyAcc(item_id=item['item_id'],price=item['price'],buyWithoutValidation=url.get('buyWithoutValidation', False))
+
                             if save_in_file:
                                 try:
                                     with open(self.logFolderPath / 'autoNotice.yml', encoding='utf-8') as file:

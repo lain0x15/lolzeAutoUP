@@ -6,6 +6,8 @@ configSchema = Schema ({
     Optional('retry_page_count'): int,
     'marketURLs': [{
         'url': str,
+        Optional('enableBuy'): bool,
+        Optional('buyWithoutValidation'): bool,
         'searchTransactionsTitle': [str]
     }]
 })
