@@ -17,6 +17,10 @@ def run (self, marketURLs, pagesPerUrl, save_in_file=False, retry_page_count=1) 
     if 'autoNotice' not in self.tmpVarsForModules:
         self.tmpVarsForModules.update ({'autoNotice':{'exclude': []}})
     self.log('Автоматическое оповещение запущено')
+    transaction_list_name = {
+        'fortnite': 'fortniteTransactions',
+        'epicgames': 'egTransactions'
+    }
     for url in marketURLs:
         page = 1
         retry = 0
@@ -32,8 +36,11 @@ def run (self, marketURLs, pagesPerUrl, save_in_file=False, retry_page_count=1) 
                     raise err
                 continue
             self.log(f'Аккаунтов найдено {accounts["totalItems"]} по ссылке {url["url"]}'+ f'&page={page}')
+
+            category = re.search(r"https://lzt.market/([\w\-]+)/.+", url['url']).groups()[0]
+
             for item in accounts['items']:
-                for transaction in item.get('fortniteTransactions'):
+                for transaction in item.get(transaction_list_name[category]):
                     if transaction['title'] in url['searchTransactionsTitle']:
                         if item["item_id"] not in self.tmpVarsForModules['autoNotice']['exclude']:
                             if len(self.tmpVarsForModules['autoNotice']['exclude']) >= 10000:
@@ -52,7 +59,7 @@ def run (self, marketURLs, pagesPerUrl, save_in_file=False, retry_page_count=1) 
                                     data.update({
                                         item["item_id"]:{
                                             '0_url': f'https://lzt.market/{item["item_id"]}',
-                                            '1_transaction': [it['title'] for it in item.get('fortniteTransactions')],
+                                            '1_transaction': [it['title'] for it in item.get(transaction_list_name[category])],
                                             '3_add_date': datetime.now()
                                         }
                                     })
