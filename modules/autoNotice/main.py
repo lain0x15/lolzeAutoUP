@@ -58,11 +58,10 @@ def run (self, marketURLs, pagesPerUrl, save_in_file=False, retry_page_count=1) 
                             res.append(f'https://lzt.market/{item["item_id"]}')
                             if url.get('enableBuy', False):
                                 resBuy = buyAcc(self, item_id=item['item_id'],price=item['price'],buyWithoutValidation=url.get('buyWithoutValidation', False))
-
                                 if error := resBuy.get('errors'):
                                     self.log (f'Не удалось купить аккаунт https://lzt.market/{item['item_id']}\n{error}', logLevel='info')
-                                    continue
-                                self.log (f'Автобай купил аккаунт https://lzt.market/{item['item_id']}', logLevel='info')
+                                else:
+                                    self.log (f'Автобай купил аккаунт https://lzt.market/{item['item_id']}', logLevel='info')
 
 
                             if save_in_file:
