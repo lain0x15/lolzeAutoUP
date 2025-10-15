@@ -40,7 +40,7 @@ modules:
       save_in_file: false
       marketURLs:
         - url: https://lzt.market/fortnite/?pmin=200&pmax=300
-          enableBuy: true
+          enableBuy: false
           buyWithoutValidation: false
           searchTransactionsTitle:
             - Rogue Company
