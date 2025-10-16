@@ -19,8 +19,8 @@ def buyAcc (
         price: int,
         buyWithoutValidation = False
 ) -> dict:
-    params = {'price':price, 'buy_without_validation':1} if buyWithoutValidation else {'price':price}
-    return self.sendRequest(f'{item_id}/fast-buy', params=params, method='POST', typeRequest='request')
+    buy_method = 'confirm-buy' if buyWithoutValidation else 'fast-buy'
+    return self.sendRequest(f'{item_id}/{buy_method}', params={'price':price}, method='POST', typeRequest='request')
 
 def run (self, marketURLs, pagesPerUrl, save_in_file=False, retry_page_count=1) -> None:
     if 'autoNotice' not in self.tmpVarsForModules:
